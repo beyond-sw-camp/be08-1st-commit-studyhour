@@ -1,5 +1,10 @@
 > # 팀 COMMIT
 
+![제목을-입력해주세요_-001](https://github.com/beyond-sw-camp/be08-1st-commit-studyhour/assets/144869429/b1f99b53-c337-4022-b394-abbb0577457f)
+
+
+##  🐸
+
 ## ✨ 프로젝트 설명
 
 ```sh
