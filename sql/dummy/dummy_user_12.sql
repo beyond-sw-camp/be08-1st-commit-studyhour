@@ -20,3 +20,16 @@ insert into USER (username, password, nickname, gender) values ('Ethelind', '$2a
 insert into USER (username, password, nickname, gender) values ('Solomon', '$2a$04$aan5YKQzYoKF81UlTbwObu7kJObFPSRvEW5cCU9szmfw4Ndz4yNxy', 'Kirlin', 'M');
 insert into USER (username, password, nickname, gender) values ('Sydney', '$2a$04$zbKGdxGGNmH6olFKdoXNeO/.bVbAqCLMFtqyA265FOwfN.N7A98Dm', 'Voisey', 'M');
 insert into USER (username, password, nickname, gender) values ('Pierce', '$2a$04$k6wAkd2ZYuFpMsGcng8RtuyG4S7Z31LKxNuM3IQDRtBW.c3dWP1zW', 'Blader', 'M');
+
+-- USER_PROFILE 테이블에 더미 데이터 추가
+INSERT INTO USER_PROFILE (user_id, age, interest, state_message, profile_image_url) VALUES
+(1, 25, 'Programming', 'Hello, I am User One', 'https://example.com/profile1.jpg'),
+(2, 30, 'Photography', 'Nice to meet you. I am User Two', 'https://example.com/profile2.jpg'),
+(3, 22, 'Reading', 'User Three here!', 'https://example.com/profile3.jpg'),
+(4, 28, 'Music', 'User Four says hi!', 'https://example.com/profile4.jpg'),
+(5, 26, 'Gaming', 'Hello from User Five', 'https://example.com/profile5.jpg'),
+(6, 32, 'Cooking', 'User Six at your service', 'https://example.com/profile6.jpg'),
+(7, 29, 'Travel', 'Greetings from User Seven', 'https://example.com/profile7.jpg'),
+(8, 27, 'Fitness', 'User Eight reporting in!', 'https://example.com/profile8.jpg'),
+(9, 24, 'Art', 'User Nine here!', 'https://example.com/profile9.jpg'),
+(10, 31, 'Movies', 'User Ten says hello', 'https://example.com/profile10.jpg');
