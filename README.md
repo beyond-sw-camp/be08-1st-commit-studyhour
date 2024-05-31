@@ -4,7 +4,7 @@
 
 
 
-## 🐸 프로젝트 멤버
+# 🐸 프로젝트 멤버
 
 |<img src="https://github.com/kanghana1/RideTogetherHYU_BE/assets/107329874/78c03ba2-f2c6-4d96-9ae9-9e3276c8a7a3" width="160" height="150"/>|<img src="https://github.com/kanghana1/RideTogetherHYU_BE/assets/107329874/05c30e5c-2398-4607-abe3-7950ed114719" width="160" height="150"/>|<img src="https://github.com/kanghana1/RideTogetherHYU_BE/assets/107329874/5d91160f-23c1-4c30-9808-002706ef715e" width="160" height="150"/>|<img src="https://avatars.githubusercontent.com/u/107329874?v=4" width="160" height="150"/>|<img src="https://github.com/kanghana1/RideTogetherHYU_BE/assets/107329874/2f170cdf-cef9-4ec0-9035-c77b742cde0e" width="160" height="150"/>|
 |:-:|:-:|:-:|:-:|:-:|
@@ -14,7 +14,7 @@
 
 <br>
 
-## ✨ 프로젝트 설명
+# ✨ 프로젝트 설명
 
 ```sh
 당신의 성공적인 스터디를 위한 최고의 동반자, 스터디 아워!
@@ -32,7 +32,7 @@
 
 ---
 
-## 📌 프로젝트 목표
+# 📌 프로젝트 목표
 
 1. **서비스 기획 및 기능 명세서 작성**: 서비스에 대한 전반적인 이해와 파악을 위해 서비스 기획과 기능 명세서를 작성한다.
 2. **ER 다이어그램 작성**: 서비스에 필요한 데이터베이스의 논리적 구조를 표현하기 위해 ER 다이어그램을 작성합니다.
@@ -43,9 +43,35 @@
 
 ---
 
-## 🐧 프로젝트 구현
+# 🐧 프로젝트 구현
 
-> ### 🏢 **기능 명세서**
+> ## 🏢 **기능 명세서**
+
+> #### 유저 
+> <img width="1108" alt="스크린샷 2024-05-31 오후 1 54 30" src="https://github.com/beyond-sw-camp/be08-1st-commit-studyhour/assets/76439014/eeb32737-972f-4c54-9660-575afe9222bb">
+
+> #### 스터디룸
+
+> #### 주간 계획 
+> <img width="1115" alt="스크린샷 2024-05-31 오후 1 55 15" src="https://github.com/beyond-sw-camp/be08-1st-commit-studyhour/assets/76439014/d7ae4853-2614-4fd9-9765-b81a56d19304">
+
+> #### 주간 계획 인증
+> <img width="1111" alt="스크린샷 2024-05-31 오후 1 55 41" src="https://github.com/beyond-sw-camp/be08-1st-commit-studyhour/assets/76439014/4b25a1db-878f-4947-bcd7-dbda02c3ed27">
+
+> #### 투 두 리스트 
+> <img width="1112" alt="스크린샷 2024-05-31 오후 1 55 25" src="https://github.com/beyond-sw-camp/be08-1st-commit-studyhour/assets/76439014/b46e8ccf-d3c3-46f3-b138-fd50a6151bd4">
+
+> #### 게시판 
+> <img width="1115" alt="스크린샷 2024-05-31 오후 1 55 51" src="https://github.com/beyond-sw-camp/be08-1st-commit-studyhour/assets/76439014/7dfa6e21-e424-4b03-b04b-0d3b6bf18e07">
+
+> #### 타이머
+> <img width="1113" alt="스크린샷 2024-05-31 오후 1 56 01" src="https://github.com/beyond-sw-camp/be08-1st-commit-studyhour/assets/76439014/2b254430-0583-485b-b442-1551b3496b66">
+
+> #### 벌금
+> <img width="1114" alt="스크린샷 2024-05-31 오후 1 56 08" src="https://github.com/beyond-sw-camp/be08-1st-commit-studyhour/assets/76439014/3c390cdd-784c-4b7a-8b4c-140b0a400ba4">
+
+> #### 통계
+> <img width="1114" alt="스크린샷 2024-05-31 오후 1 56 18" src="https://github.com/beyond-sw-camp/be08-1st-commit-studyhour/assets/76439014/5418a8e7-6254-4ac4-99ca-19cc9a7b3c4d">
 
 > ### **E-R Diragram**
 ![Beyond-Sw-Camp-DB-프로젝트](https://github.com/beyond-sw-camp/be08-1st-commit-studyhour/assets/76439014/6ec48a09-ce2d-48bd-9f77-378e57521a9a)
@@ -53,10 +79,10 @@
 ![Beyond-Sw-Camp-DB-프로젝트 (1)](https://github.com/beyond-sw-camp/be08-1st-commit-studyhour/assets/76439014/65017d15-e004-481a-8acb-db98244c17cc)
 
 
-> ### **논리적 모델링**
-<img width="1067" alt="스크린샷 2024-05-31 오후 1 48 25" src="https://github.com/beyond-sw-camp/be08-1st-commit-studyhour/assets/76439014/bfd1bd46-ff87-403a-a1ee-7365ba1ea61e">
+> ## **논리적 모델링**
+> <img width="1067" alt="스크린샷 2024-05-31 오후 1 48 25" src="https://github.com/beyond-sw-camp/be08-1st-commit-studyhour/assets/76439014/bfd1bd46-ff87-403a-a1ee-7365ba1ea61e">
 
-> ### **DDL**
+> ## **DDL**
 ```sql
 USE study_hour;
 
