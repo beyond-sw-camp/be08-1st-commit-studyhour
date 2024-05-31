@@ -41,10 +41,10 @@ AND study_room_id = 1
 UPDATE study_room_member
 SET is_join_accepted = 1,
  	 privilege = 'MEMBER'
-WHERE user_id = ( SELECT user_id FROM USER WHERE `name` = 'hoya' );
+WHERE user_id = ( SELECT user_id FROM `user` WHERE `username` = 'hoya' );
 
 
-## 2.4.3. 스터디룸 참가 신청 거부
+# 2.4.3. 스터디룸 참가 신청 거부
 -- 삭제 케이스를 위해 신청 내역 추가(username = Neddy)
 INSERT INTO study_room_member (user_id, study_room_id, is_join_accepted, join_date_time) VALUES
 (5, 1, 0, '2024-06-01 11:00:20');
@@ -62,6 +62,28 @@ AND user_id = (SELECT user_id FROM `user` WHERE `username` = 'Neddy')
 
 SELECT * 
 FROM study_room_member;
+
+# 2.5.1. 스터디룸 전체 조회 (전체 조회 화면)
+SELECT r.`name`, r.is_public, r.`description`, r.max_capacity, c.`name` AS 'category'
+FROM study_room r
+INNER JOIN study_room_category c ON c.study_room_category_id = r.study_room_category_id
+ORDER BY created_date_time DESC, is_finished ASC;
+
+# 2.5.2. 스터디룸 필터링 조회
+-- 진행중인 공개 스터디룸 조회
+SELECT r.`name`, r.is_public, r.`description`, r.max_capacity, c.`name` AS 'category'
+FROM study_room r
+INNER JOIN study_room_category c ON c.study_room_category_id = r.study_room_category_id
+WHERE r.is_public = 1
+AND 	r.end_date_time >= NOW()
+;
+
+# 2.5.3. 스터디룸 상세 조회
+-- 2번 스터디룸 상세 조회
+SELECT *
+FROM study_room
+WHERE study_room_id = 2;
+
 
 # T4. 스터디룸 생성
 INSERT INTO study_room (study_room_category_id, `name`, is_public, private_password, `description`, max_capacity,
