@@ -74,9 +74,8 @@
 > <img width="1114" alt="스크린샷 2024-05-31 오후 1 56 18" src="https://github.com/beyond-sw-camp/be08-1st-commit-studyhour/assets/76439014/5418a8e7-6254-4ac4-99ca-19cc9a7b3c4d">
 
 > ### **E-R Diragram**
-![Beyond-Sw-Camp-DB-프로젝트](https://github.com/beyond-sw-camp/be08-1st-commit-studyhour/assets/76439014/6ec48a09-ce2d-48bd-9f77-378e57521a9a)
-
-![Beyond-Sw-Camp-DB-프로젝트 (1)](https://github.com/beyond-sw-camp/be08-1st-commit-studyhour/assets/76439014/65017d15-e004-481a-8acb-db98244c17cc)
+>> ![Beyond-Sw-Camp-DB-프로젝트](https://github.com/beyond-sw-camp/be08-1st-commit-studyhour/assets/76439014/6ec48a09-ce2d-48bd-9f77-378e57521a9a)
+>> ![Beyond-Sw-Camp-DB-프로젝트 (1)](https://github.com/beyond-sw-camp/be08-1st-commit-studyhour/assets/76439014/65017d15-e004-481a-8acb-db98244c17cc)
 
 
 > ## **논리적 모델링**
