@@ -10,7 +10,7 @@ INSERT INTO study_room_member (user_id, study_room_id, is_join_accepted, join_da
 UPDATE study_room_member
 SET is_join_accepted = 1,
  	 privilege = 'MEMBER'
-WHERE user_id = 13;
+WHERE user_id = ( SELECT user_id FROM USER WHERE name = 'hoya' );
 
 
 
