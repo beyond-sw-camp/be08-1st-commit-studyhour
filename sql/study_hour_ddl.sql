@@ -17,15 +17,15 @@ DROP TABLE IF EXISTS STUDY_ROOM_MEMBER_WEEKLY_PLAN_VERIFICATION;
 DROP TABLE IF EXISTS STATISTICS;
 -- 외래 키 제약 조건 활성화
 SET FOREIGN_KEY_CHECKS = 1;
-CREATE TABLE `STATISTICS`
-(
-    `study_room_id`    INT          NOT NULL,
-    `participant_id`   INT          NOT NULL,
-    `study_room_round` INT          NOT NULL,
-    `attendance`       VARCHAR(255) NULL,
-    `todo_achievement` VARCHAR(255) NULL,
-    `pay_fine`         VARCHAR(255) NULL
-);
+# CREATE TABLE `STATISTICS`
+# (
+#     `study_room_id`    INT          NOT NULL,
+#     `participant_id`   INT          NOT NULL,
+#     `study_room_round` INT          NOT NULL,
+#     `attendance`       VARCHAR(255) NULL,
+#     `todo_achievement` VARCHAR(255) NULL,
+#     `pay_fine`         VARCHAR(255) NULL
+# );
 
 
 CREATE TABLE `USER`
