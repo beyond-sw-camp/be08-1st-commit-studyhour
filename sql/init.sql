@@ -14,18 +14,9 @@ DROP TABLE IF EXISTS STUDY_ROOM_BOARD;
 DROP TABLE IF EXISTS STUDY_ROOM_BOARD_COMMENT;
 DROP TABLE IF EXISTS STUDY_ROOM_MEMBER_WEEKLY_PLAN;
 DROP TABLE IF EXISTS STUDY_ROOM_MEMBER_WEEKLY_PLAN_VERIFICATION;
-DROP TABLE IF EXISTS statistics;
+DROP TABLE IF EXISTS STATISTICS;
 -- 외래 키 제약 조건 활성화
 SET FOREIGN_KEY_CHECKS = 1;
-CREATE TABLE `statistics`
-(
-    `study_room_id`    INT          NOT NULL,
-    `participant_id`   INT          NOT NULL,
-    `attendance`       VARCHAR(255) NULL,
-    `todo_achievement` VARCHAR(255) NULL,
-    `pay_fine`         VARCHAR(255) NULL
-);
-
 
 CREATE TABLE `USER`
 (
@@ -75,7 +66,6 @@ CREATE TABLE `STUDY_ROOM_MEMBER_TODO`
     `study_room_member_todo_id` INT PRIMARY KEY AUTO_INCREMENT,
     `study_room_member_id`      INT          NOT NULL,
     `content`                   VARCHAR(200) NULL,
-    `todo_duration_time`        INT          NULL,
     `created_date`              DATE         NOT NULL,
     `is_checked`                BOOLEAN      NOT NULL DEFAULT FALSE,
     FOREIGN KEY (study_room_member_id) REFERENCES STUDY_ROOM_MEMBER (study_room_member_id)
@@ -93,7 +83,7 @@ CREATE TABLE `STUDY_ROOM`
     `study_room_category_id` INT                    NOT NULL,
     `name`                   VARCHAR(30)            NOT NULL,
     `is_public`              boolean                NOT NULL,
-    `private_password`       VARCHAR(64)            NULL,
+    `private_password`            VARCHAR(64)           NULL,
     `description`            VARCHAR(500)           NULL,
     `max_capacity`           TINYINT                NOT NULL CHECK (max_capacity BETWEEN 2 AND 30),
     `authentication_method`  ENUM ('TIME', 'PHOTO') NOT NULL,
@@ -135,6 +125,7 @@ CREATE TABLE `STUDY_ROOM_MEMBER_WEEKLY_PLAN`
     `study_room_id`                    INT          NOT NULL,
     `study_room_member_id`             INT          NOT NULL,
     `plan_detail`                      VARCHAR(500) NULL,
+    `plan_duration`                    INT          NULL,
     `created_date_time`                TIMESTAMP    NOT NULL,
     `weekly_plan_round_number`         INT          NOT NULL,
     FOREIGN KEY (study_room_id) REFERENCES STUDY_ROOM (study_room_id),
@@ -145,7 +136,6 @@ CREATE TABLE `STUDY_ROOM_MEMBER_WEEKLY_PLAN_VERIFICATION`
 (
     `study_room_member_weekly_plan_verification_id` INT PRIMARY KEY AUTO_INCREMENT,
     `study_room_member_weekly_plan_id`              INT          NOT NULL,
-    `total_duration_time`                           INT          NULL,
     `image_url`                                     VARCHAR(255) NULL,
     `create_date_time`                              TIMESTAMP    NOT NULL,
     FOREIGN KEY (study_room_member_weekly_plan_id) REFERENCES STUDY_ROOM_MEMBER_WEEKLY_PLAN (study_room_member_weekly_plan_id)
@@ -161,20 +151,6 @@ CREATE TABLE `STUDY_ROOM_MEMBER_WEEKLY_PLAN_EVALUATION`
     FOREIGN KEY (study_room_member_weekly_plan_id) REFERENCES STUDY_ROOM_MEMBER_WEEKLY_PLAN (study_room_member_weekly_plan_id),
     FOREIGN KEY (study_room_member_id) REFERENCES STUDY_ROOM_MEMBER (study_room_member_id)
 );
-
--- User Dummy 삽입
-USE study_hour;
-
--- 외래 키 제약 조건 비활성화
-SET FOREIGN_KEY_CHECKS = 0;
-
-TRUNCATE TABLE USER;
-TRUNCATE TABLE STUDY_ROOM;
-TRUNCATE TABLE STUDY_ROOM_CATEGORY;
-TRUNCATE TABLE STUDY_ROOM_BOARD;
-
--- 외래 키 제약 조건 활성화
-SET FOREIGN_KEY_CHECKS = 1;
 
 
 -- USER 테이블에 더미 데이터 추가
@@ -588,7 +564,7 @@ VALUES (1, 'Java 기본 문법 복습', '2024-06-02', 1),
 INSERT INTO STUDY_ROOM_MEMBER_FINE (study_room_member_id, get_fine_round, fine_amount)
 VALUES (2, 1, 12000),
        (2, 2, 12000),
-       (4, 2, 12000)
+       (4, 1, 12000)
 ;
 
 -- 그룹 2 dummy data
