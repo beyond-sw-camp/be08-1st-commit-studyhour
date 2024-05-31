@@ -42,6 +42,15 @@
 6. **데이터베이스 서버 배포**: Ubuntu 운영체제와 MariaDB 데이터베이스를 기반으로 데이터베이스 서버를 배포한다.
 
 ---
+## 📚 기술 스택
+
+&nbsp;&nbsp;&nbsp;&nbsp;<img src="https://img.shields.io/badge/GitHub-181717?style=flat&logo=GitHub&logoColor=white&color=black"></a></a>
+&nbsp;&nbsp;&nbsp;&nbsp;<img src="https://img.shields.io/badge/Git-F05032?style=flat&logo=Git&logoColor=white&color=ffa500"></a></a>
+&nbsp;&nbsp;&nbsp;<img src="https://img.shields.io/badge/MariaDB-003545?style=flat&logo=MariaDB&logoColor=white"/></a>
+<br>
+
+---
+<br>
 
 # 🐧 프로젝트 구현
 
