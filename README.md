@@ -51,6 +51,7 @@
 > <img width="1108" alt="스크린샷 2024-05-31 오후 1 54 30" src="https://github.com/beyond-sw-camp/be08-1st-commit-studyhour/assets/76439014/eeb32737-972f-4c54-9660-575afe9222bb">
 
 > #### 스터디룸
+> ![Screenshot_20240531_140908_Sheets](https://github.com/beyond-sw-camp/be08-1st-commit-studyhour/assets/76439014/52b2a224-5fef-4a79-8b21-07afa2bf0b78)
 
 > #### 주간 계획 
 > <img width="1115" alt="스크린샷 2024-05-31 오후 1 55 15" src="https://github.com/beyond-sw-camp/be08-1st-commit-studyhour/assets/76439014/d7ae4853-2614-4fd9-9765-b81a56d19304">
