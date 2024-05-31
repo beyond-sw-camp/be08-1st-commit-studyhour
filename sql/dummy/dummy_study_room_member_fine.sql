@@ -4,7 +4,7 @@
 -- 그룹 1 dummy data
 INSERT INTO STUDY_ROOM_MEMBER_FINE (study_room_member_id, get_fine_round, fine_amount) VALUES
 (2, 1, 12000),
-(2, 2, 12000),
+(2, 1, 12000),
 (4, 2, 12000)
 ;
 
