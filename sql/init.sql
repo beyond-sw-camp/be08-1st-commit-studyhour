@@ -580,3 +580,123 @@ VALUES (1, 'Java 기본 문법 복습', '2024-06-02', 1),
        (10, 'Python 비동기 프로그래밍 이해하기', '2024-06-25', 0),
        (5, 'Python 테스트 주도 개발 연습', '2024-06-27', 1),
        (6, 'Python 데이터베이스 연동 실습', '2024-06-29', 0);
+
+-- STUDY_ROOM_MEMBER_FINE 테이블에 더미 데이터 추가
+-- 그룹 1 : 1~4 / 그룹2 : 1~6명
+
+-- 그룹 1 dummy data
+INSERT INTO STUDY_ROOM_MEMBER_FINE (study_room_member_id, get_fine_round, fine_amount)
+VALUES (2, 1, 12000),
+       (2, 2, 12000),
+       (4, 2, 12000)
+;
+
+-- 그룹 2 dummy data
+INSERT INTO STUDY_ROOM_MEMBER_FINE (study_room_member_id, get_fine_round, fine_amount)
+VALUES (1, 2, 5000),
+       (3, 2, 5000),
+       (4, 2, 5000),
+       (5, 3, 5000)
+;
+
+-- STUDY_ROOM_MEMBER_WEEKLY_PLAN_EVALUATION 테이블에 더미 데이터 추가
+-- 이모지 입력이 mariaDB에 올라가지나 모르겠어서 일단 알파벳으로 입력(내일 가서 확인하겠음)
+INSERT INTO STUDY_ROOM_MEMBER_WEEKLY_PLAN_EVALUATION (`study_room_member_weekly_plan_id`, `study_room_member_id`,
+                                                      `evaluation_date_time`, `evaluation_icon`)
+VALUES (2, 1, '2024-06-01 08:36', 'A'),
+       (2, 3, '2024-06-01 11:45', 'A'),
+       (7, 2, '2024-06-02 07:45', 'A'),
+       (12, 2, '2024-06-07 14:18', 'U'),
+       (18, 2, '2024-06-07 15:23', 'B'),
+       (19, 1, '2024-06-08 19:13', 'L'),
+       (23, 2, '2024-06-08 19:37', 'B'),
+       (23, 2, '2024-06-09 10:56', 'C'),
+       (27, 2, '2024-06-03 12:34', 'O'),
+       (29, 1, '2024-06-03 16:40', 'B'),
+       (37, 3, '2024-06-04 13:42', 'U'),
+       (39, 4, '2024-06-04 17:05', 'U'),
+       (42, 3, '2024-06-05 08:45', 'A'),
+       (47, 2, '2024-06-09 16:40', 'U'),
+       (48, 1, '2024-06-10 10:34', 'C'),
+       (50, 2, '2024-06-10 11:45', 'B'),
+       (51, 3, '2024-06-11 18:02', 'A'),
+       (53, 2, '2024-06-11 18:02', 'L'),
+       (53, 2, '2024-06-11 21:35', 'C'),
+       (54, 2, '2024-06-12 11:45', 'A'),
+       (54, 1, '2024-06-12 18:02', 'L'),
+       (57, 2, '2024-06-13 09:13', 'C'),
+       (63, 4, '2024-06-13 19:13', 'O'),
+       (65, 10, '2024-06-01 17:05', 'L'),
+       (66, 5, '2024-06-05 08:45', 'L'),
+       (72, 10, '2024-06-02 18:46', 'O'),
+       (76, 10, '2024-06-05 20:24', 'B'),
+       (78, 7, '2024-06-06 12:51', 'B'),
+       (82, 9, '2024-06-07 15:23', 'L'),
+       (87, 10, '2024-06-08 19:13', 'B'),
+       (93, 9, '2024-06-08 19:37', 'A'),
+       (95, 6, '2024-06-09 10:56', 'U'),
+       (96, 5, '2024-06-09 11:45', 'U'),
+       (98, 7, '2024-06-16 21:35', 'L'),
+       (100, 8, '2024-06-17 08:36', 'A'),
+       (100, 10, '2024-06-17 10:18', 'C'),
+       (116, 7, '2024-06-05 18:46', 'L'),
+       (118, 5, '2024-06-05 20:24', 'B'),
+       (122, 5, '2024-06-11 18:02', 'B'),
+       (123, 9, '2024-06-11 21:35', 'O'),
+       (126, 7, '2024-06-12 11:45', 'U'),
+       (131, 8, '2024-06-12 18:02', 'B'),
+       (137, 7, '2024-06-18 08:36', 'B'),
+       (142, 10, '2024-06-18 10:18', 'L'),
+       (144, 6, '2024-06-19 07:15', 'A'),
+       (144, 5, '2024-06-19 12:51', 'C'),
+       (145, 6, '2024-06-19 20:28', 'A'),
+       (147, 10, '2024-06-20 14:18', 'A'),
+       (147, 6, '2024-06-20 16:40', 'O')
+;
+
+
+INSERT INTO STUDY_ROOM_MEMBER_WEEKLY_PLAN_VERIFICATION (study_room_member_weekly_plan_id, image_url, create_date_time)
+VALUES (1, 'https://example.com/photo1.jpg', '2024-06-04 01:23'),
+       (3, 'https://example.com/photo3.jpg', '2024-06-03 15:42'),
+       (4, 'https://example.com/photo4.jpg', '2024-06-01 22:54'),
+       (6, 'https://example.com/photo6.jpg', '2024-06-07 11:08'),
+       (7, 'https://example.com/photo7.jpg', '2024-06-07 18:26'),
+       (8, 'https://example.com/photo8.jpg', '2024-06-04 02:39'),
+       (9, 'https://example.com/photo9.jpg', '2024-06-04 07:14'),
+       (13, 'https://example.com/photo13.jpg', '2024-06-13 10:43'),
+       (14, 'https://example.com/photo14.jpg', '2024-06-07 17:20'),
+       (15, 'https://example.com/photo15.jpg', '2024-06-08 00:58'),
+       (16, 'https://example.com/photo16.jpg', '2024-06-09 08:35'),
+       (18, 'https://example.com/photo18.jpg', '2024-06-10 21:49'),
+       (19, 'https://example.com/photo19.jpg', '2024-06-11 03:27'),
+       (20, 'https://example.com/photo20.jpg', '2024-06-13 12:05'),
+       (21, 'https://example.com/photo21.jpg', '2024-06-11 19:42'),
+       (22, 'https://example.com/photo22.jpg', '2024-06-11 06:19'),
+       (24, 'https://example.com/photo24.jpg', '2024-06-04 22:34'),
+       (30, 'https://example.com/photo30.jpg', '2024-06-02 12:17'),
+       (31, 'https://example.com/photo31.jpg', '2024-06-01 18:54'),
+       (32, 'https://example.com/photo32.jpg', '2024-06-07 02:31'),
+       (37, 'https://example.com/photo37.jpg', '2024-06-03 10:38'),
+       (38, 'https://example.com/photo38.jpg', '2024-06-03 17:16'),
+       (39, 'https://example.com/photo39.jpg', '2024-06-07 00:53'),
+       (40, 'https://example.com/photo40.jpg', '2024-06-02 08:30'),
+       (41, 'https://example.com/photo41.jpg', '2024-06-04 15:07'),
+       (42, 'https://example.com/photo42.jpg', '2024-06-03 21:44'),
+       (43, 'https://example.com/photo43.jpg', '2024-06-05 03:22'),
+       (47, 'https://example.com/photo47.jpg', '2024-06-08 14:51'),
+       (48, 'https://example.com/photo48.jpg', '2024-06-12 22:28'),
+       (49, 'https://example.com/photo49.jpg', '2024-06-07 01:05'),
+       (50, 'https://example.com/photo50.jpg', '2024-06-10 09:42'),
+       (51, 'https://example.com/photo51.jpg', '2024-06-08 16:19'),
+       (52, 'https://example.com/photo52.jpg', '2024-06-09 22:57'),
+       (53, 'https://example.com/photo53.jpg', '2024-06-11 10:43'),
+       (54, 'https://example.com/photo54.jpg', '2024-06-09 17:40'),
+       (57, 'https://example.com/photo57.jpg', '2024-06-10 11:12'),
+       (58, 'https://example.com/photo58.jpg', '2024-06-13 21:44'),
+       (59, 'https://example.com/photo59.jpg', '2024-06-11 03:27'),
+       (60, 'https://example.com/photo60.jpg', '2024-06-13 12:01'),
+       (61, 'https://example.com/photo61.jpg', '2024-06-06 00:53'),
+       (62, 'https://example.com/photo62.jpg', '2024-06-05 08:30'),
+       (63, 'https://example.com/photo63.jpg', '2024-06-08 15:07'),
+       (64, 'https://example.com/photo64.jpg', '2024-06-09 23:02')
+;
