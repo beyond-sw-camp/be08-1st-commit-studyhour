@@ -63,4 +63,31 @@ AND user_id = (SELECT user_id FROM `user` WHERE `username` = 'Neddy')
 SELECT * 
 FROM study_room_member;
 
+# T4. 스터디룸 생성
+INSERT INTO study_room (study_room_category_id, `name`, is_public, private_password, `description`, max_capacity,
+                        start_date_time, end_date_time, created_date_time)
+VALUES (3, '당근마켓 클론 프로젝트', 0, 'asdf1020', '당근마켓 클론 프로젝트 모임입니다.', 6, '2024-06-01 12:12:13', '2024-12-06 05:00:00',
+        '2024-05-31 17:12:31');
 
+-- 스터디룸 생성하면서 동시에 스터디룸 멤버에 방장으로써 데이터 삽입되어야함
+INSERT INTO study_room_member (user_id, study_room_id, is_join_accepted, privilege, join_date_time)
+VALUES (12, 3, 1, 'MANAGER', '2024-05-31 17:12:31');
+
+
+# [4.1.1] [투 두 리스트 내용 입력] T
+# INSERT INTO STUDY_ROOM_MEMBER_TODO (study_room_member_id, content, todo_duration_time, created_date, is_checked)
+# VALUE ()
+
+# [4.2.1] [투 두 리스트 조회] T
+SELECT r.name                                 AS '스터디룸',
+       u.nickname                             AS '작성자',
+       to_do.content                          AS '내용',
+       to_do.created_date                     AS '작성일',
+       IF(is_checked, 'CHECKED', 'UNCHECKED') AS '체크_여부'
+FROM STUDY_ROOM_MEMBER_TODO to_do
+         INNER JOIN STUDY_ROOM_MEMBER m ON to_do.study_room_member_id = m.study_room_member_id
+         INNER JOIN STUDY_ROOM r ON m.study_room_id = r.study_room_id
+         INNER JOIN USER u ON m.user_id = u.user_id;
+# [4.3.1] [투 두 리스트 수정] T
+
+# [4.4.1] [투 두 리스트 삭제] T
