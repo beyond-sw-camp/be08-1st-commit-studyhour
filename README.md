@@ -83,6 +83,14 @@
 > <img width="1067" alt="스크린샷 2024-05-31 오후 1 48 25" src="https://github.com/beyond-sw-camp/be08-1st-commit-studyhour/assets/76439014/bfd1bd46-ff87-403a-a1ee-7365ba1ea61e">
 
 > ## **DDL**
+> #### 컬럼명 컨벤션
+> 1. pk는  [테이블 physical name]_id 로 통일
+> 2. date 타입은 마지막을 _date, datetime은 마지막을 date_time
+> 3. 컬럼명 줄이지 말고 최대한 풀어서 쓰기
+> 4. pk를 제외한 속성에는 가능하면 테이블 이름 포함 안하기
+> 5. 아이디 : username
+> 6. 닉네임 : nickname
+
 ```sql
 USE study_hour;
 
