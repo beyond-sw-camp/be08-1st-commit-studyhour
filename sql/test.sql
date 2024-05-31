@@ -4,8 +4,18 @@ INSERT INTO `USER` (username, password, nickname, gender) VALUES
 
 # 2.1. 스터디룸 생성
 -- 12번 유저가 '당근마켓 클론 프로젝트'라는 이름의 스터디룸 개설 (비공개)
-INSERT INTO study_room (study_room_category_id, `name`, is_public, private_password, `description`, max_capacity, start_date_time, end_date_time, created_date_time) VALUES
-(3,'당근마켓 클론 프로젝트',0,'asdf1020','당근마켓 클론 프로젝트 모임입니다.', 6, '2024-06-01 12:12:13', '2024-12-06 05:00:00', '2024-05-31 17:12:31');
+INSERT INTO study_room (study_room_category_id, `name`, is_public, private_password, `description`, 
+								max_capacity, start_date_time, end_date_time, created_date_time, is_finished) VALUES
+(3,'당근마켓 클론 프로젝트',0,'asdf1020','당근마켓 클론 프로젝트 모임입니다.', 
+6, '2024-06-01 12:12:13', '2024-12-06 05:00:00', '2024-05-31 17:12:31', FALSE);
+
+# 2.2. 스터디룸 정보 수정
+--	3번 스터디룸 비밀번호 변경 및 인원수 조정, 벌금 추가
+UPDATE study_room
+SET	private_password = '',
+		max_capacity = 7,
+		fine = 1000
+WHERE study_room_id = 3;
 
 -- * 스터디룸 생성하면서 동시에 스터디룸 멤버에 방장으로써 데이터 삽입되어야함
 INSERT INTO study_room_member (user_id, study_room_id, is_join_accepted, privilege, join_date_time) VALUES
