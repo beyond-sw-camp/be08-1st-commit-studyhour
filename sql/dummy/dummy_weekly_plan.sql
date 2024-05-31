@@ -66,7 +66,7 @@ INSERT INTO STUDY_ROOM_MEMBER_WEEKLY_PLAN (study_room_id, study_room_member_id, 
 (1, 3, '알고리즘 문제 풀이 3문제 풀기', '2024-06-06 09:14:12', 2, 6300);
 
 -- 2번 테이블
-INSERT INTO plans (plan_id, user_id, plan_description, plan_date, priority, plan_duration) VALUES
+INSERT INTO STUDY_ROOM_MEMBER_WEEKLY_PLAN (plan_id, user_id, plan_description, plan_date, priority, plan_duration) VALUES
 (2, 10, '코드트리 그리디알고리즘 10문제 풀기', '2024-05-31 07:45:22', 1, 12500),
 (2, 9, '프로그래머스 문제집 풀기 - 이분탐색', '2024-05-31 08:36:11', 1, 7300),
 (2, 10, '알고리즘 문제 풀이 7문제 풀기', '2024-05-31 09:27:00', 1, 11500),
