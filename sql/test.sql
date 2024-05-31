@@ -2,6 +2,8 @@
 INSERT INTO `USER` (username, password, nickname, gender) VALUES
 ('hoya', '1q2w3e4r!', 'hwsc', 'M');
 
+
+
 # 2.1. 스터디룸 생성
 -- 12번 유저가 '당근마켓 클론 프로젝트'라는 이름의 스터디룸 개설 (비공개)
 INSERT INTO study_room (study_room_category_id, `name`, is_public, private_password, `description`, 
@@ -20,7 +22,9 @@ WHERE study_room_id = 3;
 -- * 스터디룸 생성하면서 동시에 스터디룸 멤버에 방장으로써 데이터 삽입되어야함
 INSERT INTO study_room_member (user_id, study_room_id, is_join_accepted, privilege, join_date_time) VALUES
 (12, 3, 1, 'MANAGER','2024-05-31 17:12:31');
-# 2.4 13번 유저 1번 스터디룸 신청
+
+# 2.3.1 공개 스터디룸 참가 신청
+-- 13번 유저 1번 스터디룸 참가 신청
 INSERT INTO study_room_member (user_id, study_room_id, is_join_accepted, join_date_time) VALUES
 (13, 1, 0, '2024-06-01 11:00:20');
 
@@ -32,12 +36,31 @@ WHERE is_join_accepted = 0
 AND study_room_id = 1
 ;
 
-# 2.4.2. 스터디룸 참가 요청 수락
+# 2.4.2. 스터디룸 참가 신청 수락
 -- 아이디 hoya 유저(user_id = 13) 신청 가입 허가
 UPDATE study_room_member
 SET is_join_accepted = 1,
  	 privilege = 'MEMBER'
-WHERE user_id = ( SELECT user_id FROM USER WHERE name = 'hoya' );
+WHERE user_id = ( SELECT user_id FROM USER WHERE `name` = 'hoya' );
 
+
+## 2.4.3. 스터디룸 참가 신청 거부
+-- 삭제 케이스를 위해 신청 내역 추가(username = Neddy)
+INSERT INTO study_room_member (user_id, study_room_id, is_join_accepted, join_date_time) VALUES
+(5, 1, 0, '2024-06-01 11:00:20');
+
+SELECT * 
+FROM study_room_member;
+
+-- 5번 유저(Neddy)의 1번 스터디룸 참가 신청을 거부함에 따른 삭제
+DELETE
+FROM study_room_member
+WHERE privilege IS NULL
+AND study_room_id = 1
+AND user_id = (SELECT user_id FROM `user` WHERE `username` = 'Neddy')
+;
+
+SELECT * 
+FROM study_room_member;
 
 
