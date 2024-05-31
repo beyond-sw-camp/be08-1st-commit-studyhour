@@ -6,7 +6,7 @@
 
 ## 🐸 프로젝트 멤버
 
-|<img src="https://avatars.githubusercontent.com/u/76439014?v=4" width="160" height="150"/>|<img src="https://avatars.githubusercontent.com/u/84115607?v=4" width="160" height="150"/>|<img src="https://github.com/kanghana1/RideTogetherHYU_BE/assets/107329874/5d91160f-23c1-4c30-9808-002706ef715e" width="160" height="150"/>|<img src="https://avatars.githubusercontent.com/u/107329874?v=4" width="160" height="150"/>|<img src="https://avatars.githubusercontent.com/u/144869429?v=4" width="160" height="150"/>|
+|<img src="https://github.com/kanghana1/RideTogetherHYU_BE/assets/107329874/78c03ba2-f2c6-4d96-9ae9-9e3276c8a7a3" width="160" height="150"/>|<img src="https://github.com/kanghana1/RideTogetherHYU_BE/assets/107329874/05c30e5c-2398-4607-abe3-7950ed114719" width="160" height="150"/>|<img src="https://github.com/kanghana1/RideTogetherHYU_BE/assets/107329874/5d91160f-23c1-4c30-9808-002706ef715e" width="160" height="150"/>|<img src="https://avatars.githubusercontent.com/u/107329874?v=4" width="160" height="150"/>|<img src="https://github.com/kanghana1/RideTogetherHYU_BE/assets/107329874/2f170cdf-cef9-4ec0-9035-c77b742cde0e" width="160" height="150"/>|
 |:-:|:-:|:-:|:-:|:-:|
 |계용운<br/>[@yongun2](https://github.com/yongun2) | 윤호연<br/>[@hoyeon96](https://github.com/hoyeon96) | 서현지<br/>[@henhen7](https://github.com/henhen7) | 강하나<br/>[@kanghana1](https://github.com/kanghana1)|이주희<br/>[@juhi0916](https://github.com/juhi0916)
 
