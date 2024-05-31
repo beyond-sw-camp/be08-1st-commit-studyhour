@@ -4,7 +4,7 @@
 INSERT INTO `USER` (username, password, nickname, gender) VALUES
 ('hoya', '1q2w3e4r!', 'hwsc', 'M');
 
-# 13번 유저 1번 스토리룸 신청
+# 13번 유저 1번 스터디룸 신청
 INSERT INTO study_room_member (user_id, study_room_id, is_join_accepted, join_date_time) VALUES
 (13, 1, 0, '2024-06-01 11:00:20');
 
