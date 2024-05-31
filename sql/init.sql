@@ -588,7 +588,7 @@ VALUES (1, 'Java 기본 문법 복습', '2024-06-02', 1),
 INSERT INTO STUDY_ROOM_MEMBER_FINE (study_room_member_id, get_fine_round, fine_amount)
 VALUES (2, 1, 12000),
        (2, 2, 12000),
-       (4, 2, 12000)
+       (4, 1, 12000)
 ;
 
 -- 그룹 2 dummy data
