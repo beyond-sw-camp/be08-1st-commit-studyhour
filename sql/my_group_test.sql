@@ -59,8 +59,8 @@ AND privilege = 'member'
 DELIMITER $
 
 CREATE OR REPLACE PROCEDURE multProc(
-    IN MEMBER VARCHAR(255),
-    IN study_group VARCHAR(255)
+    IN MEMBER VARCHAR(15),
+    IN study_group VARCHAR(30)
 )
 BEGIN
     DECLARE manager_check BOOLEAN;
