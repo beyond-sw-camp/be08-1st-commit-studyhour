@@ -1,6 +1,5 @@
 -- 1번 테이블
 INSERT INTO STUDY_ROOM_MEMBER_WEEKLY_PLAN (study_room_id, study_room_member_id, plan_detail, created_date_time, weekly_plan_round_number, plan_duration) VALUES
-(1, 4, '코드트리 그리디알고리즘 1~4번 풀기', '2024-05-31 13:46:47', 1, 7200),
 (1, 2, '혼자 공부하는 자바 챕터 1,2 공부하기', '2024-05-31 11:46:57', 1, 5400),
 (1, 3, '마리아DB 테이블 생성, 조회, 삭제 블로그에 정리하기', '2024-05-31 10:49:04', 1, 6600),
 (1, 4, '리눅스 명령어 정리하기', '2024-05-31 15:55:04', 1, 4800),
