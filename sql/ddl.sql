@@ -31,10 +31,10 @@ SET FOREIGN_KEY_CHECKS = 1;
 CREATE TABLE `USER`
 (
     `user_id`  INT PRIMARY KEY AUTO_INCREMENT,
-    `username` VARCHAR(15) UNIQUE NOT NULL,
-    `password` VARCHAR(64)        NOT NULL,
-    `nickname` VARCHAR(10) UNIQUE NOT NULL,
-    `gender`   ENUM ('M','F')     NOT NULL
+    `username` VARCHAR(15) UNIQUE,
+    `password` VARCHAR(64),
+    `nickname` VARCHAR(10) UNIQUE,
+    `gender`   ENUM ('M','F')
 );
 
 CREATE TABLE `USER_PROFILE`
@@ -93,7 +93,7 @@ CREATE TABLE `STUDY_ROOM`
     `study_room_category_id` INT                    NOT NULL,
     `name`                   VARCHAR(30)            NOT NULL,
     `is_public`              boolean                NOT NULL,
-    `private_password`            VARCHAR(64)           NULL,
+    `private_password`       VARCHAR(64)            NULL,
     `description`            VARCHAR(500)           NULL,
     `max_capacity`           TINYINT                NOT NULL CHECK (max_capacity BETWEEN 2 AND 30),
     `authentication_method`  ENUM ('TIME', 'PHOTO') NOT NULL,
