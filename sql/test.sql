@@ -208,6 +208,65 @@ DELIMITER ;
 
 CALL search_weekly_plan('Fliege');
 
+# [3.3.1] [주간 계획 피드백 추가] T
+INSERT INTO study_room_member_weekly_plan_evaluation (study_room_member_weekly_plan_id,
+																		study_room_member_id,
+																		evaluation_date_time,
+																		evaluation_icon) VALUES
+(1,12,'2024-06-01 10:50:12','A');
+
+SELECT * FROM study_room_member_weekly_plan_evaluation
+ORDER BY study_room_member_weekly_plan_evaluation_id DESC
+LIMIT 1;
+
+# [3.3.1] - 2 [주간 계획 피드백 수정] T
+
+-- 1번 유저가 3번 유저 주간계획 평가 이모지바꾸기 
+UPDATE study_room_member_weekly_plan_evaluation
+	SET evaluation_date_time = NOW(),
+		 evaluation_icon = 'C'
+ WHERE study_room_member_id = 1;
+ 
+--   [3.3.1] - 3 [주간 계획 피드백 삭제] T
+-- 
+-- 1번 유저가 3번 유저 주간계획 평가 피드백 취소 
+-- DELETE *
+--   FROM study_room_member_weekly_plan_evaluation
+--  WHERE study_room_member_weekly_plan_evaluation;
+-- 
+
+# [3.4.1] [주간 계획 삭제하기] T
+
+
+# [3.5.1] [주간 계획 수정하기] T
+-- 날짜 지나면 수정 못하게 하기
+
+-- 이전 시간대 주간 계획 수정 시 경고 메세지 출력
+DELIMITER $$
+
+CREATE OR REPLACE TRIGGER update_time_check BEFORE UPDATE ON study_room_member_weekly_plan
+FOR EACH ROW
+BEGIN
+    IF OLD.created_date_time < NOW() THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = '현재 시간보다 이전일 주간계획은 수정할 수 없습니다.';
+    END IF;
+END $$
+
+DELIMITER ;
+
+-- 46번 'SQL SOLVE 100~105번 풀기'로 수정
+UPDATE study_room_member_weekly_plan
+SET plan_detail = 'SQL SOLVE 100~105번 풀기',
+	 created_date_time = NOW()
+WHERE study_room_member_weekly_plan_id = 46;
+
+-- 46번 'SQL SOLVE 100~105번 풀기'로 수정
+UPDATE study_room_member_weekly_plan
+SET plan_detail = 'SQL SOLVE 100~105번 풀기',
+	 created_date_time = NOW()
+WHERE study_room_member_weekly_plan_id = 6;
+
 
 # [4.1.1] [투 두 리스트 내용 입력] T
 # INSERT INTO STUDY_ROOM_MEMBER_TODO (study_room_member_id, content, todo_duration_time, created_date, is_checked)
