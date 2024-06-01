@@ -37,8 +37,13 @@ INSERT INTO study_room_member (user_id, study_room_id, is_join_accepted, join_da
 
 # [2.4.1] [스터디룸 참가 신청내역 조회] T
 -- 1번 스터디룸 참가 신청 내역 조회(1번 스터디룸 방장)
-SELECT user_id, join_date_time
-FROM study_room_member
+SELECT u.nickname,
+		 u.gender,
+		 up.profile_image_url,
+		 srm.join_date_time
+FROM study_room_member srm
+INNER JOIN `user` u ON srm.user_id = u.user_id
+LEFT OUTER JOIN user_profile up ON u.user_id = up.user_id
 WHERE is_join_accepted = 0
 AND study_room_id = 1
 ;
@@ -78,7 +83,13 @@ ORDER BY created_date_time DESC, is_finished ASC;
 
 # [2.5.2] [스터디룸 필터링 조회] T
 -- 진행중인 공개 스터디룸 조회
-SELECT r.`name`, r.is_public, r.`description`, r.max_capacity, c.`name` AS 'category'
+SELECT r.`name`, 
+		 r.is_public,
+		 r.`description`, 
+		 r.max_capacity, 
+		 c.`name` AS 'category',
+		 r.created_date_time,
+		 r.end_date_time,
 FROM study_room r
 INNER JOIN study_room_category c ON c.study_room_category_id = r.study_room_category_id
 WHERE r.is_public = 1
@@ -87,9 +98,40 @@ AND 	r.end_date_time >= NOW()
 
 # [2.5.3] [스터디룸 상세 조회] T
 -- 2번 스터디룸 상세 조회
-SELECT *
-FROM study_room
-WHERE study_room_id = 2;
+-- id 컬럼 제외 모든 컬럼 조회할 수 있도록 프로시저 생성
+DELIMITER $$
+
+CREATE OR REPLACE PROCEDURE select_study_room(
+	IN id INT(11)
+)
+BEGIN
+    DECLARE columns_list VARCHAR(1000);
+
+    -- Construct the column list excluding `study_room_id`
+    SELECT GROUP_CONCAT(CONCAT('r.', COLUMN_NAME) SEPARATOR ', ')
+    INTO columns_list
+    FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_NAME = 'study_room'
+    AND COLUMN_NAME != 'study_room_id'
+    AND COLUMN_NAME != 'study_room_category_id';
+
+    -- Construct the query
+    SET @query = CONCAT('SELECT c.`name` AS category, ', columns_list, 
+                        ' FROM study_room r INNER JOIN study_room_category c ',
+                        ' ON c.study_room_category_id = r.study_room_category_id ',
+                        ' WHERE r.study_room_id = ', id);
+
+    -- Execute the query
+    PREPARE stmt FROM @query;
+    EXECUTE stmt;
+    DEALLOCATE PREPARE stmt;
+END $$
+
+DELIMITER ;
+
+-- 프로시저 호출
+CALL select_study_room(2);
+
 
 # [3.1.1] [주간 계획 생성] T
 -- 12번 user (hoya) 새로운 1주차 주간계획 생성
@@ -165,8 +207,6 @@ END $$
 DELIMITER ;
 
 CALL search_weekly_plan('Fliege');
-
-
 
 
 # [4.1.1] [투 두 리스트 내용 입력] T
