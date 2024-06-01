@@ -108,6 +108,67 @@ INNER JOIN study_room_member m ON wp.study_room_member_id = m.study_room_member_
 INNER JOIN `user` u ON m.user_id = u.user_id
 WHERE wp.study_room_member_id = 12;
 
+# [3.2.1] [주간 계획 조회] T
+
+-- (Luisetti가 로그인 상태) 내 주간계획 조회
+SELECT wp.weekly_plan_round_number,
+		 wp.plan_detail,
+		 wp.created_date_time
+FROM study_room_member_weekly_plan wp
+INNER JOIN study_room r ON wp.study_room_id = r.study_room_id
+INNER JOIN study_room_member m ON wp.study_room_member_id = m.study_room_member_id
+INNER JOIN `user` u ON m.user_id = u.user_id
+WHERE wp.study_room_member_id = (SELECT srm.study_room_member_id
+											FROM study_room_member srm
+											INNER JOIN `user` u ON srm.user_id = u.user_id 
+											WHERE u.nickname = 'Luisetti');
+
+# [3.2.1] - 2  [같은 스터디룸 안의 주간 계획 조회] T
+
+-- (Luisetti가 로그인 상태) 내가 참여하고 있는 스터디룸에서 다른 사람 주간계획 조회
+
+-- 내가 참여하고 있는 스터디룸의 참가자들 띄우기
+CREATE OR REPLACE VIEW my_study_room_members_view AS 
+SELECT u.nickname
+FROM study_room_member srm
+INNER JOIN `user` u ON u.user_id = srm.user_id
+INNER JOIN study_room sr ON sr.study_room_id = srm.study_room_id
+WHERE srm.is_join_accepted = TRUE
+AND 	sr.study_room_id = (SELECT srm.study_room_id 
+									 FROM  study_room_member srm
+									 INNER JOIN `user` u ON u.user_id = srm.user_id
+									 WHERE nickname = 'Luisetti')
+;
+
+SELECT * FROM my_study_room_members_view;
+;
+
+
+-- 같은 스터디룸에 있는 Fliege의 주간 계획 보러 가기
+DELIMITER $$
+CREATE OR REPLACE PROCEDURE search_weekly_plan(
+	IN clicked_nickname VARCHAR(10)
+)
+BEGIN 
+	SELECT wp.weekly_plan_round_number,
+			 wp.plan_detail,
+			 wp.created_date_time
+	FROM study_room_member_weekly_plan wp
+	INNER JOIN study_room r ON wp.study_room_id = r.study_room_id
+	INNER JOIN study_room_member m ON wp.study_room_member_id = m.study_room_member_id
+	INNER JOIN `user` u ON m.user_id = u.user_id
+	WHERE wp.study_room_member_id = (SELECT srm.study_room_member_id
+												FROM study_room_member srm
+												INNER JOIN `user` u ON srm.user_id = u.user_id 
+												WHERE u.nickname = clicked_nickname);
+END $$
+DELIMITER ;
+
+CALL search_weekly_plan('Fliege');
+
+
+
+
 # [4.1.1] [투 두 리스트 내용 입력] T
 # INSERT INTO STUDY_ROOM_MEMBER_TODO (study_room_member_id, content, todo_duration_time, created_date, is_checked)
 # VALUE ()
