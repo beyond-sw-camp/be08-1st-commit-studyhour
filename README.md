@@ -124,6 +124,7 @@ StudyHour, 당신의 학습을 혁신하다.
 
 > ## **⚡논리적 모델링**
 > <img width="1067" alt="스크린샷 2024-05-31 오후 1 48 25" src="https://github.com/beyond-sw-camp/be08-1st-commit-studyhour/assets/76439014/bfd1bd46-ff87-403a-a1ee-7365ba1ea61e">
+> https://www.erdcloud.com/d/Pa9iZmgyjL6FFvJaT
 
 > ## ** 테이블 명세서 **
 > https://docs.google.com/spreadsheets/d/1G1UDF3zMqdjeQdWAOBGzSWtaD-pu4Jln05nPjunVHCQ/edit#gid=2107785064
