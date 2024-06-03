@@ -1,6 +1,7 @@
--- 평가, 게시판, 댓글 테이블은 살린다.
--- 주간계획, 인증, 벌금 테이블은 삭제.
--- study_room 내 인원 집계 시 해당 유저가 탈퇴했는지 안했는지 여부를 확인한다. - 참가인원 확인 시
+use study_hour;
+
+-- 게시판, 댓글 테이블은 살린다.
+-- 탈퇴자에 대한 주간 계획, 평가, 인증, 벌금 테이블 삭제
 DELIMITER $$
 CREATE OR REPLACE TRIGGER DELETE_LEAVING_MEMBER_HISTORY
     AFTER UPDATE
@@ -53,7 +54,28 @@ BEGIN
 END $$
 DELIMITER ;
 
-SHOW TRIGGERS
+# 탈퇴 처리 테스트용 더미 데이터 추가
+INSERT INTO USER (username, password, nickname, gender)
+VALUES ('탈퇴 유저 1', '1234', '탈퇴 닉네임 1', 'M'),
+       ('탈퇴 유저 2', '1234', '탈퇴 닉네임 2', 'M');
+
+# 'Giselbert 유저 탈퇴'
+UPDATE USER
+SET username = CONCAT('탈퇴 유저 ', (SELECT COUNT(*) + 1 AS 'NEXT_COUNT'
+                                 FROM USER
+                                 WHERE username LIKE '탈퇴 유저%'
+                                   AND nickname LIKE '탈퇴 닉네임%')),
+    nickname = CONCAT('탈퇴 닉네임 ', (SELECT COUNT(*) + 1 AS 'NEXT_COUNT'
+                                  FROM USER
+                                  WHERE username LIKE '탈퇴 유저%'
+                                    AND nickname LIKE '탈퇴 닉네임%')),
+    password = NULL,
+    gender   = NULL
+WHERE username = 'Giselbert';
+
+SELECT *
+FROM USER;
+
 
 SELECT *
 FROM STUDY_ROOM_MEMBER m
