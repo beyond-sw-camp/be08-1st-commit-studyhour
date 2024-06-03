@@ -15,10 +15,10 @@ SET username = CONCAT('탈퇴 유저 ', (SELECT COUNT(*) + 1 AS 'NEXT_COUNT'
                                  FROM USER
                                  WHERE username LIKE '탈퇴 유저%'
                                    AND nickname LIKE '탈퇴 닉네임%')),
-    nickname = CONCAT('탈퇴 닉네임 ', ((SELECT COUNT(*) + 1 AS 'NEXT_COUNT'
-                                   FROM USER
-                                   WHERE username LIKE '탈퇴 유저%'
-                                     AND nickname LIKE '탈퇴 닉네임%'))),
+    nickname = CONCAT('탈퇴 닉네임 ', (SELECT COUNT(*) + 1 AS 'NEXT_COUNT'
+                                  FROM USER
+                                  WHERE username LIKE '탈퇴 유저%'
+                                    AND nickname LIKE '탈퇴 닉네임%')),
     password = NULL,
     gender   = NULL
 WHERE username = 'Giselbert';
