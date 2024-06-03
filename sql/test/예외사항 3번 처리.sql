@@ -32,6 +32,15 @@ BEGIN
         WHERE study_room_member_id in (SELECT m.study_room_member_id
                                       FROM STUDY_ROOM_MEMBER m
                                       WHERE m.user_id = OLD.user_id);
+                                      
+         -- 탈퇴 유저 투두 삭제
+        DELETE
+        FROM STUDY_ROOM_MEMBER_TODO
+        WHERE STUDY_ROOM_MEMBER_TODO.study_room_member_id in (SELECT t.study_room_member_id
+                                                              FROM STUDY_ROOM_MEMBER m
+                                                                       INNER JOIN STUDY_ROOM_MEMBER_TODO t
+                                                                                  ON m.study_room_member_id = t.study_room_member_id
+                                                              WHERE m.user_id = OLD.user_id);
     END IF;
 END $$
 DELIMITER ;
@@ -39,9 +48,9 @@ DELIMITER ;
 SELECT *
 FROM STUDY_ROOM_MEMBER m
          INNER JOIN USER u ON m.user_id = u.user_id
-         INNER JOIN STUDY_ROOM_MEMBER_TODO todo ON m.study_room_member_id = todo.study_room_member_id
-         INNER JOIN STUDY_ROOM_MEMBER_FINE fine ON m.study_room_member_id = fine.study_room_member_id
-         INNER JOIN STUDY_ROOM_MEMBER_WEEKLY_PLAN plan ON m.study_room_member_id = plan.study_room_member_id
-         INNER JOIN STUDY_ROOM_MEMBER_WEEKLY_PLAN_VERIFICATION v
+         LEFT JOIN STUDY_ROOM_MEMBER_TODO todo ON m.study_room_member_id = todo.study_room_member_id
+         LEFT JOIN STUDY_ROOM_MEMBER_FINE fine ON m.study_room_member_id = fine.study_room_member_id
+         LEFT JOIN STUDY_ROOM_MEMBER_WEEKLY_PLAN plan ON m.study_room_member_id = plan.study_room_member_id
+         LEFT JOIN STUDY_ROOM_MEMBER_WEEKLY_PLAN_VERIFICATION v
                     ON plan.study_room_member_weekly_plan_id = v.study_room_member_weekly_plan_id
-WHERE m.study_room_id = 1;
+WHERE m.study_room_id = 1 AND username LIKE '탈퇴%';
