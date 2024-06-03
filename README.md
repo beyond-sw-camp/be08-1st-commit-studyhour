@@ -1,4 +1,4 @@
-> # 팀 COMMIT
+> # 팀 COMMIT_test
 
 ![커밋 베너](https://github.com/beyond-sw-camp/be08-1st-commit-studyhour/assets/144869429/df644c10-cab5-4ed8-a1e4-566d9f04387d)
 
