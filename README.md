@@ -299,3 +299,1517 @@ CREATE TABLE `STUDY_ROOM_MEMBER_WEEKLY_PLAN_EVALUATION`
     FOREIGN KEY (study_room_member_id) REFERENCES STUDY_ROOM_MEMBER (study_room_member_id)
 );
 ```
+
+# 🐸 테스트 케이스 생성
+> ## **유저**
+<details>
+<summary>신규 회원 가입</summary>
+<div markdown="1">
+
+```sql
+
+    # [1.3] [신규 회원 가입] T
+    INSERT INTO `USER` (username, password, nickname, gender) VALUES
+    ('hoya', '1q2w3e4r!', 'hwsc', 'M');
+```
+
+</div>
+</details>
+
+<details>
+<summary>회원 탈퇴</summary>
+<div markdown="1">
+
+```sql
+
+    use study_hour;
+
+-- 게시판, 댓글 테이블은 살린다.
+-- 탈퇴자에 대한 주간 계획, 평가, 인증, 벌금 테이블 삭제
+DELIMITER $$
+CREATE OR REPLACE TRIGGER DELETE_LEAVING_MEMBER_HISTORY
+    AFTER UPDATE
+    ON USER
+    FOR EACH ROW
+BEGIN
+    IF NEW.username LIKE '탈퇴%' AND NEW.nickname LIKE '탈퇴%'
+    THEN
+        -- 탈퇴 유저 주간 계획 인증 삭제
+        DELETE
+        FROM STUDY_ROOM_MEMBER_WEEKLY_PLAN_VERIFICATION
+        WHERE study_room_member_weekly_plan_id in (SELECT p.study_room_member_weekly_plan_id
+                                                   FROM STUDY_ROOM_MEMBER m
+                                                            INNER JOIN STUDY_ROOM_MEMBER_WEEKLY_PLAN p
+                                                                       ON m.study_room_member_id = p.study_room_member_id
+                                                   WHERE m.user_id = OLD.user_id);
+
+        -- 탈퇴 유저 주간 계획에 대한 평가 삭제
+        DELETE
+        FROM STUDY_ROOM_MEMBER_WEEKLY_PLAN_EVALUATION
+        WHERE study_room_member_weekly_plan_id IN (SELECT p.study_room_member_weekly_plan_id
+                                                   FROM STUDY_ROOM_MEMBER m
+                                                            INNER JOIN STUDY_ROOM_MEMBER_WEEKLY_PLAN p
+                                                                       ON m.study_room_member_id = p.study_room_member_id
+                                                   WHERE m.user_id = OLD.user_id);
+
+        -- 탈퇴 유저 주간 계획 삭제
+        DELETE
+        FROM STUDY_ROOM_MEMBER_WEEKLY_PLAN
+        WHERE study_room_member_id = (SELECT m.study_room_member_id
+                                      FROM STUDY_ROOM_MEMBER m
+                                      WHERE m.user_id = OLD.user_id);
+
+        -- 탈퇴 유저 벌금 삭제
+        DELETE
+        FROM STUDY_ROOM_MEMBER_FINE
+        WHERE study_room_member_id in (SELECT m.study_room_member_id
+                                       FROM STUDY_ROOM_MEMBER m
+                                       WHERE m.user_id = OLD.user_id);
+
+        -- 탈퇴 유저 투두 삭제
+        DELETE
+        FROM STUDY_ROOM_MEMBER_TODO
+        WHERE STUDY_ROOM_MEMBER_TODO.study_room_member_id in (SELECT t.study_room_member_id
+                                                              FROM STUDY_ROOM_MEMBER m
+                                                                       INNER JOIN STUDY_ROOM_MEMBER_TODO t
+                                                                                  ON m.study_room_member_id = t.study_room_member_id
+                                                              WHERE m.user_id = OLD.user_id);
+    END IF;
+END $$
+DELIMITER ;
+
+# 탈퇴 처리 테스트용 더미 데이터 추가
+INSERT INTO USER (username, password, nickname, gender)
+VALUES ('탈퇴 유저 1', '1234', '탈퇴 닉네임 1', 'M'),
+       ('탈퇴 유저 2', '1234', '탈퇴 닉네임 2', 'M');
+
+# 'Giselbert 유저 탈퇴'
+UPDATE USER
+SET username = CONCAT('탈퇴 유저 ', (SELECT COUNT(*) + 1 AS 'NEXT_COUNT'
+                                 FROM USER
+                                 WHERE username LIKE '탈퇴 유저%'
+                                   AND nickname LIKE '탈퇴 닉네임%')),
+    nickname = CONCAT('탈퇴 닉네임 ', (SELECT COUNT(*) + 1 AS 'NEXT_COUNT'
+                                  FROM USER
+                                  WHERE username LIKE '탈퇴 유저%'
+                                    AND nickname LIKE '탈퇴 닉네임%')),
+    password = NULL,
+    gender   = NULL
+WHERE username = 'Giselbert';
+
+SELECT *
+FROM USER;
+
+
+SELECT *
+FROM STUDY_ROOM_MEMBER m
+         INNER JOIN USER u ON m.user_id = u.user_id
+         LEFT JOIN STUDY_ROOM_MEMBER_TODO todo ON m.study_room_member_id = todo.study_room_member_id
+         LEFT JOIN STUDY_ROOM_MEMBER_FINE fine ON m.study_room_member_id = fine.study_room_member_id
+         LEFT JOIN STUDY_ROOM_MEMBER_WEEKLY_PLAN plan ON m.study_room_member_id = plan.study_room_member_id
+         LEFT JOIN STUDY_ROOM_MEMBER_WEEKLY_PLAN_VERIFICATION v
+                   ON plan.study_room_member_weekly_plan_id = v.study_room_member_weekly_plan_id
+WHERE m.study_room_id = 1
+  AND username LIKE '탈퇴%';
+
+```
+
+</div>
+</details>
+
+> ## **스터디룸**
+<details>
+<summary>스터디룸 생성</summary>
+<div markdown="1">
+
+```sql
+
+-- 12번 유저가 '당근마켓 클론 프로젝트'라는 이름의 스터디룸 개설 (비공개)
+INSERT INTO study_room (study_room_category_id, `name`, is_public, private_password, `description`, 
+								max_capacity, start_date_time, end_date_time, created_date_time, is_finished) VALUES
+(3,'당근마켓 클론 프로젝트',0,'asdf1020','당근마켓 클론 프로젝트 모임입니다.', 
+6, '2024-06-01 12:12:13', '2024-12-06 05:00:00', '2024-05-31 17:12:31', FALSE);
+
+-- 스터디룸 생성하면서 동시에 스터디룸 멤버에 방장으로써 데이터 삽입되어야함
+INSERT INTO study_room_member (user_id, study_room_id, is_join_accepted, privilege, join_date_time)
+VALUES (12, 3, 1, 'MANAGER', '2024-05-31 17:12:31');
+
+```
+
+</div>
+</details>
+
+<details>
+<summary>스터디룸 정보 수정</summary>
+<div markdown="1">
+
+```sql
+
+--	3번 스터디룸 비밀번호 변경 및 인원수 조정, 벌금 추가
+UPDATE study_room
+SET	private_password = '',
+		max_capacity = 7,
+		fine = 1000
+WHERE study_room_id = 3;
+
+-- * 스터디룸 생성하면서 동시에 스터디룸 멤버에 방장으로써 데이터 삽입되어야함
+INSERT INTO study_room_member (user_id, study_room_id, is_join_accepted, privilege, join_date_time) VALUES
+(12, 3, 1, 'MANAGER','2024-05-31 17:12:31');
+
+```
+
+</div>
+</details>
+
+<details>
+<summary>스터디룸 참가 신청</summary>
+<div markdown="1">
+
+```sql
+
+# [2.3.1] [공개 스터디룸 참가 신청] T
+-- 13번 유저 1번 스터디룸 참가 신청
+INSERT INTO study_room_member (user_id, study_room_id, is_join_accepted, join_date_time) VALUES
+(13, 1, 0, '2024-06-01 11:00:20');
+
+# [2.4.1] [스터디룸 참가 신청내역 조회] T
+-- 1번 스터디룸 참가 신청 내역 조회(1번 스터디룸 방장)
+SELECT u.nickname,
+		 u.gender,
+		 up.profile_image_url,
+		 srm.join_date_time
+FROM study_room_member srm
+INNER JOIN `user` u ON srm.user_id = u.user_id
+LEFT OUTER JOIN user_profile up ON u.user_id = up.user_id
+WHERE is_join_accepted = 0
+AND study_room_id = 1
+;
+
+# [2.4.2] [스터디룸 참가 신청 수락] T
+-- 아이디 hoya 유저(user_id = 13) 신청 가입 허가
+UPDATE study_room_member
+SET is_join_accepted = 1,
+ 	 privilege = 'MEMBER'
+WHERE user_id = ( SELECT user_id FROM `user` WHERE `nickname` = 'hwsc' );
+
+
+# [2.4.3] [스터디룸 참가 신청 거부] T
+-- 삭제 케이스를 위해 신청 내역 추가(nickname = Walczak)
+INSERT INTO study_room_member (user_id, study_room_id, is_join_accepted, join_date_time) VALUES
+(5, 1, 0, '2024-06-01 11:00:20');
+
+SELECT * 
+FROM study_room_member;
+
+-- 5번 유저(Neddy)의 1번 스터디룸 참가 신청을 거부함에 따른 삭제
+DELETE
+FROM study_room_member
+WHERE privilege IS NULL
+AND study_room_id = 1
+AND user_id = (SELECT user_id FROM `user` WHERE `nickname` = 'Walczak')
+;
+
+SELECT * 
+FROM study_room_member;
+
+```
+
+</div>
+</details>
+
+<details>
+<summary>스터디룸 전체 목록 조회</summary>
+<div markdown="1">
+
+```sql
+
+# [2.5.1] [스터디룸 전체 조회 (전체 조회 화면)] T
+SELECT r.`name`, r.is_public, r.`description`, r.max_capacity, c.`name` AS 'category'
+FROM study_room r
+INNER JOIN study_room_category c ON c.study_room_category_id = r.study_room_category_id
+ORDER BY created_date_time DESC, is_finished ASC;
+
+# [2.5.2] [스터디룸 필터링 조회] T
+-- 진행중인 공개 스터디룸 조회
+SELECT r.`name`, 
+		 r.is_public,
+		 r.`description`, 
+		 r.max_capacity, 
+		 c.`name` AS 'category',
+		 r.created_date_time,
+		 r.end_date_time,
+FROM study_room r
+INNER JOIN study_room_category c ON c.study_room_category_id = r.study_room_category_id
+WHERE r.is_public = 1
+AND 	r.end_date_time >= NOW()
+;
+
+# [2.5.3] [스터디룸 상세 조회] T
+-- 2번 스터디룸 상세 조회
+-- id 컬럼 제외 모든 컬럼 조회할 수 있도록 프로시저 생성
+DELIMITER $$
+
+CREATE OR REPLACE PROCEDURE select_study_room(
+	IN id INT(11)
+)
+BEGIN
+    DECLARE columns_list VARCHAR(1000);
+
+    -- Construct the column list excluding `study_room_id`
+    SELECT GROUP_CONCAT(CONCAT('r.', COLUMN_NAME) SEPARATOR ', ')
+    INTO columns_list
+    FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_NAME = 'study_room'
+    AND COLUMN_NAME != 'study_room_id'
+    AND COLUMN_NAME != 'study_room_category_id';
+
+    -- Construct the query
+    SET @query = CONCAT('SELECT c.`name` AS category, ', columns_list, 
+                        ' FROM study_room r INNER JOIN study_room_category c ',
+                        ' ON c.study_room_category_id = r.study_room_category_id ',
+                        ' WHERE r.study_room_id = ', id);
+
+    -- Execute the query
+    PREPARE stmt FROM @query;
+    EXECUTE stmt;
+    DEALLOCATE PREPARE stmt;
+END $$
+
+DELIMITER ;
+
+-- 프로시저 호출
+CALL select_study_room(2);
+
+```
+
+</div>
+</details>
+
+<details>
+<summary>마이 스터디룸 조회</summary>
+<div markdown="1">
+
+```sql
+
+-- is_join_accepted로 스터디그룹 참여 가능 여부가 갈림
+
+-- starla가 마이 스터디룸 서비스를 이용한다고 가정
+-- [2.6.1] 마이스터디룸 조회 (스터디룸 이름, 종료여부)
+SELECT sr.name, if(sr.is_finished, 'end (종료)', 'proceeding (진행중)') AS '종료여부'
+FROM study_room_member srm
+INNER JOIN user u ON u.user_id = srm.user_id
+INNER JOIN study_room sr ON sr.study_room_id = srm.study_room_id
+WHERE u.username = 'starla'
+;
+
+-- [2.6.2] 마이 스터디룸 상세 조회 (스룸 이름, 소개, 카테고리명, 스터디 최대인원, 시작/끝 날짜)
+-- 뷰 생성
+CREATE VIEW my_study_room_view AS
+SELECT u.username,
+		 sr.name AS 'study_group_name', 
+		 src.name AS 'category',
+		 sr.description,
+		 sr.max_capacity,
+		 sr.start_date_time,
+		 sr.end_date_time,
+		 srmem.is_join_accepted,
+		 sr.is_finished
+FROM study_room_member srmem
+INNER JOIN user u ON u.user_id = srmem.user_id
+INNER JOIN study_room sr ON sr.study_room_id = srmem.study_room_id
+INNER JOIN study_room_category src ON src.study_room_category_id = sr.study_room_category_id
+WHERE srmem.is_join_accepted = TRUE
+;
+
+SELECT * FROM my_study_room_view
+where username = 'starla'
+AND study_group_name = '자바로 알고리즘 공부하기'
+;
+
+
+-- 스터디룸 참가중인 인원
+
+SELECT sr.name, COUNT(*) AS '참가인원', sr.max_capacity AS '최대인원'
+FROM study_room_member srmem
+INNER JOIN study_room sr ON sr.study_room_id = srmem.study_room_id
+WHERE srmem.is_join_accepted = TRUE
+GROUP BY sr.name
+HAVING sr.name = (SELECT sr.name FROM study_room_member srmem
+											INNER JOIN user u ON u.user_id = srmem.user_id
+											INNER JOIN study_room sr ON sr.study_room_id = srmem.study_room_id
+						WHERE u.username = 'starla')
+;
+
+
+```
+
+</div>
+</details>
+
+<details>
+<summary>스터디룸 퇴장</summary>
+<div markdown="1">
+
+```sql
+
+-- [2.7.1] 스터디룸 퇴장
+-- is_join_accept를 false로 바꾸고, 권한 없애기
+UPDATE study_room_member
+SET is_join_accepted = false, privilege = null
+WHERE user_id = (
+						SELECT user_id FROM user
+						WHERE username = 'starla'
+					)
+AND privilege = 'member'
+;
+
+-- [2.7.2] 스터디룸 부원 강퇴
+-- starla가 방장이라면 luther을 자바로 알고리즘 공부하기에서 강퇴
+DELIMITER $
+
+CREATE OR REPLACE PROCEDURE outMemberProc(
+    IN MEMBER VARCHAR(15),
+    IN study_group VARCHAR(30)
+)
+BEGIN
+    DECLARE manager_check BOOLEAN;
+
+    -- starla가 방장인지 확인 (맞으면 true, 아니면 false 반환) -> bool값을 manager_check 변수에 담음
+    SELECT IF(privilege = 'manager', TRUE, FALSE)
+    INTO manager_check
+    FROM study_room_member
+    WHERE user_id = (
+        SELECT user_id FROM user
+        WHERE username = 'starla'
+    );
+
+    -- 방장이라면, 부원의 권한을 null로, 참가여부를 false로 바꿈으로써 탈퇴
+    IF manager_check THEN
+        UPDATE study_room_member
+        SET is_join_accepted = FALSE, privilege = NULL
+        WHERE user_id = (
+            SELECT user_id FROM user
+            WHERE username = MEMBER
+        )
+        AND study_room_id = (
+            SELECT study_room_id FROM study_room
+            WHERE name = study_group
+        );
+    END IF;
+END $
+
+DELIMITER ;
+
+CALL outMemberProc('luther','자바로 알고리즘 공부하기');
+
+```
+
+</div>
+</details>
+
+<details>
+<summary>스터디룸 방장 권한 위임</summary>
+<div markdown="1">
+
+```sql
+
+-- 1번 스터디룸 방장인 1번 유저가 3번유저에게 방장 위임
+UPDATE study_room_member
+SET privilege = 'member'
+WHERE user_id = (SELECT user_id FROM `user` WHERE nickname = 'Luisetti') 
+AND privilege = 'manager';
+
+UPDATE study_room_member
+	SET privilege = 'MANAGER'
+ WHERE user_id = 
+ (SELECT user_id FROM `user` WHERE nickname = 'Fliege') 
+;
+
+```
+
+</div>
+</details>
+
+> ## **주간 계획**
+<details>
+<summary>주간 계획 생성</summary>
+<div markdown="1">
+
+```sql
+
+# [3.1.1] [주간 계획 생성] T
+-- 12번 user (hoya) 새로운 1주차 주간계획 생성
+INSERT INTO study_room_member_weekly_plan (study_room_id, study_room_member_id, plan_detail, created_date_time, weekly_plan_round_number) VALUES
+(1, 12, 'solveSQL 5문제풀기', '2024-06-01 12:00:00', 1);
+
+-- 생성 후 생성된 내용 화면에 띄우기 위해 조회
+SELECT u.nickname,
+		 r.`name`,
+		 wp.weekly_plan_round_number,
+		 wp.plan_detail,
+		 wp.created_date_time
+FROM study_room_member_weekly_plan wp
+INNER JOIN study_room r ON wp.study_room_id = r.study_room_id
+INNER JOIN study_room_member m ON wp.study_room_member_id = m.study_room_member_id
+INNER JOIN `user` u ON m.user_id = u.user_id
+WHERE wp.study_room_member_id = 12;
+
+```
+
+</div>
+</details>
+
+<details>
+<summary>주간 계획 조회</summary>
+<div markdown="1">
+
+```sql
+
+# [3.2.1] [주간 계획 조회] T
+
+-- (Luisetti가 로그인 상태) 내 주간계획 조회
+SELECT wp.weekly_plan_round_number,
+		 wp.plan_detail,
+		 wp.created_date_time
+FROM study_room_member_weekly_plan wp
+INNER JOIN study_room r ON wp.study_room_id = r.study_room_id
+INNER JOIN study_room_member m ON wp.study_room_member_id = m.study_room_member_id
+INNER JOIN `user` u ON m.user_id = u.user_id
+WHERE wp.study_room_member_id = (SELECT srm.study_room_member_id
+											FROM study_room_member srm
+											INNER JOIN `user` u ON srm.user_id = u.user_id 
+											WHERE u.nickname = 'Luisetti');
+
+# [3.2.1] - 2  [같은 스터디룸 안의 주간 계획 조회] T
+
+-- (Luisetti가 로그인 상태) 내가 참여하고 있는 스터디룸에서 다른 사람 주간계획 조회
+
+-- 내가 참여하고 있는 스터디룸의 참가자들 띄우기
+CREATE OR REPLACE VIEW my_study_room_members_view AS 
+SELECT u.nickname
+FROM study_room_member srm
+INNER JOIN `user` u ON u.user_id = srm.user_id
+INNER JOIN study_room sr ON sr.study_room_id = srm.study_room_id
+WHERE srm.is_join_accepted = TRUE
+AND 	sr.study_room_id = (SELECT srm.study_room_id 
+									 FROM  study_room_member srm
+									 INNER JOIN `user` u ON u.user_id = srm.user_id
+									 WHERE nickname = 'Luisetti')
+;
+
+SELECT * FROM my_study_room_members_view;
+;
+
+
+-- 같은 스터디룸에 있는 Fliege의 주간 계획 보러 가기
+DELIMITER $$
+CREATE OR REPLACE PROCEDURE search_weekly_plan(
+	IN clicked_nickname VARCHAR(10)
+)
+BEGIN 
+	SELECT wp.weekly_plan_round_number,
+			 wp.plan_detail,
+			 wp.created_date_time
+	FROM study_room_member_weekly_plan wp
+	INNER JOIN study_room r ON wp.study_room_id = r.study_room_id
+	INNER JOIN study_room_member m ON wp.study_room_member_id = m.study_room_member_id
+	INNER JOIN `user` u ON m.user_id = u.user_id
+	WHERE wp.study_room_member_id = (SELECT srm.study_room_member_id
+												FROM study_room_member srm
+												INNER JOIN `user` u ON srm.user_id = u.user_id 
+												WHERE u.nickname = clicked_nickname);
+END $$
+DELIMITER ;
+
+CALL search_weekly_plan('Fliege');
+```
+
+</div>
+</details>
+
+<details>
+<summary>이전 시간대 주간 계획 수정 경고 처리</summary>
+<div markdown="1">
+
+```sql
+
+# [3.5.1] [주간 계획 수정하기] T
+-- 날짜 지나면 수정 못하게 하기
+
+-- 이전 시간대 주간 계획 수정 시 경고 메세지 출력
+DELIMITER $$
+
+CREATE OR REPLACE TRIGGER update_time_check BEFORE UPDATE ON study_room_member_weekly_plan
+FOR EACH ROW
+BEGIN
+    IF OLD.created_date_time < NOW() THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = '현재 시간보다 이전일 주간계획은 수정할 수 없습니다.';
+    END IF;
+END $$
+
+DELIMITER ;
+
+-- 46번 'SQL SOLVE 100~105번 풀기'로 수정
+UPDATE study_room_member_weekly_plan
+SET plan_detail = 'SQL SOLVE 100~105번 풀기',
+	 created_date_time = NOW()
+WHERE study_room_member_weekly_plan_id = 46;
+
+-- 46번 'SQL SOLVE 100~105번 풀기'로 수정
+UPDATE study_room_member_weekly_plan
+SET plan_detail = 'SQL SOLVE 100~105번 풀기',
+	 created_date_time = NOW()
+WHERE study_room_member_weekly_plan_id = 6;
+
+```
+
+</div>
+</details>
+
+<details>
+<summary>주간 계획 피드백</summary>
+<div markdown="1">
+
+```sql
+
+# [3.3.1] [주간 계획 피드백 추가] T
+INSERT INTO study_room_member_weekly_plan_evaluation (study_room_member_weekly_plan_id,
+																		study_room_member_id,
+																		evaluation_date_time,
+																		evaluation_icon) VALUES
+(1,12,'2024-06-01 10:50:12','A');
+
+SELECT * FROM study_room_member_weekly_plan_evaluation
+ORDER BY study_room_member_weekly_plan_evaluation_id DESC
+LIMIT 1;
+
+# [3.3.1] - 2 [주간 계획 피드백 수정] T
+
+-- 1번 유저가 3번 유저 주간계획 평가 이모지바꾸기 
+UPDATE study_room_member_weekly_plan_evaluation
+	SET evaluation_date_time = NOW(),
+		 evaluation_icon = 'C'
+ WHERE study_room_member_id = 1;
+
+```
+
+</div>
+</details>
+
+> ## **투 두 리스트**
+<details>
+<summary>투 두 리스트 생성 및 조회</summary>
+<div markdown="1">
+
+```sql
+
+USE study_hour;
+
+# 투 두 테스트를 위한 프로시저
+DELIMITER $$
+CREATE OR REPLACE PROCEDURE SELECT_TODO_ALL()
+BEGIN
+    SELECT r.name                                 AS '스터디룸',
+           u.username                             AS '작성자',
+           to_do.content                          AS '내용',
+           to_do.created_date                     AS '작성일',
+           IF(is_checked, 'CHECKED', 'UNCHECKED') AS '체크_여부'
+    FROM STUDY_ROOM_MEMBER_TODO to_do
+             INNER JOIN STUDY_ROOM_MEMBER m ON to_do.study_room_member_id = m.study_room_member_id
+             INNER JOIN STUDY_ROOM r ON m.study_room_id = r.study_room_id
+             INNER JOIN USER u ON m.user_id = u.user_id
+    ORDER BY r.name;
+END $$
+
+DELIMITER ;
+
+DELIMITER $$
+CREATE OR REPLACE PROCEDURE SELECT_TODO_BY_USERNAME(
+    IN USERNAME VARCHAR(15)
+)
+BEGIN
+    SELECT r.name                                 AS '스터디룸',
+           u.username                             AS '작성자',
+           to_do.content                          AS '내용',
+           to_do.created_date                     AS '작성일',
+           IF(is_checked, 'CHECKED', 'UNCHECKED') AS '체크_여부'
+    FROM STUDY_ROOM_MEMBER_TODO to_do
+             INNER JOIN STUDY_ROOM_MEMBER m ON to_do.study_room_member_id = m.study_room_member_id
+             INNER JOIN STUDY_ROOM r ON m.study_room_id = r.study_room_id
+             INNER JOIN USER u ON m.user_id = u.user_id
+    WHERE u.username = USERNAME
+    ORDER BY r.name;
+END $$
+DELIMITER ;
+
+# [4.1.1] [투 두 리스트 내용 입력] T
+-- Giselbert 가 스터디룸 1번에서 투 두 리스트 작성
+INSERT INTO STUDY_ROOM_MEMBER_TODO (study_room_member_id, content, created_date)
+    VALUE (3, '투 두 리스트 작성 테스트', CURDATE());
+
+CALL SELECT_STUDY_ROOM_MEMBER_TODO_BY_USERNAME('Giselbert');
+# [4.2.1] [투 두 리스트 조회] T
+-- 전체 스터디룸 내 모든 투 두 리스트 조회
+CALL SELECT_STUDY_ROOM_MEMBER_TODO_ALL();
+
+-- 유저 아이디 'Giselbert'가 작성한 투 두 리스트 조회
+CALL SELECT_STUDY_ROOM_MEMBER_TODO_BY_USERNAME('Giselbert');
+
+```
+
+</div>
+</details>
+
+<details>
+<summary>투 두 리스트 수정</summary>
+<div markdown="1">
+
+```sql
+
+# [4.3.1] [투 두 리스트 수정] T
+-- 유저 아이디 'Giselbert'가 작성한 투 두 리스트 수정
+UPDATE STUDY_ROOM_MEMBER_TODO
+SET content = '투 두 리스트 수정 테스트'
+WHERE study_room_member_id = (SELECT study_room_member_id
+                              FROM STUDY_ROOM_MEMBER m
+                                       INNER JOIN USER u ON m.user_id = u.user_id
+                              WHERE u.username = 'Giselbert');
+
+CALL SELECT_STUDY_ROOM_MEMBER_TODO_BY_USERNAME('Giselbert');
+
+```
+
+</div>
+</details>
+
+<details>
+<summary>투 두 리스트 삭제</summary>
+<div markdown="1">
+
+```sql
+
+# [4.4.1] [투 두 리스트 삭제] T
+-- 유저 아이디 'Giselbert' 가 작성한 투 두 리스트 수정
+UPDATE STUDY_ROOM_MEMBER_TODO
+SET content = '투 두 리스트 수정 테스트'
+WHERE study_room_member_todo_id = (SELECT to_do.study_room_member_todo_id
+                                   FROM STUDY_ROOM_MEMBER_TODO to_do
+                                            INNER JOIN STUDY_ROOM_MEMBER m
+                                                       ON to_do.study_room_member_id = m.study_room_member_id
+                                            INNER JOIN STUDY_ROOM r ON m.study_room_id = r.study_room_id
+                                            INNER JOIN USER u ON m.user_id = u.user_id
+                                   WHERE u.username = 'Giselbert'
+                                   ORDER BY to_do.created_date
+                                   LIMIT 1);
+
+CALL SELECT_STUDY_ROOM_MEMBER_TODO_BY_USERNAME('Giselbert');
+-- 처음으로 작성된 투 두 리스트 제거
+DELETE
+FROM STUDY_ROOM_MEMBER_TODO
+WHERE study_room_member_todo_id = (SELECT to_do.study_room_member_todo_id
+                                   FROM STUDY_ROOM_MEMBER_TODO to_do
+                                            INNER JOIN STUDY_ROOM_MEMBER m
+                                                       ON to_do.study_room_member_id = m.study_room_member_id
+                                            INNER JOIN STUDY_ROOM r ON m.study_room_id = r.study_room_id
+                                            INNER JOIN USER u ON m.user_id = u.user_id
+                                   WHERE u.username = 'Giselbert'
+                                   ORDER BY to_do.created_date
+                                   LIMIT 1);
+
+CALL SELECT_STUDY_ROOM_MEMBER_TODO_BY_USERNAME('Giselbert');
+
+```
+
+</div>
+</details>
+
+> ## **인증**
+<details>
+<summary>인증 여부 확인 프로시저 생성</summary>
+<div markdown="1">
+
+```sql
+
+USE study_hour;
+
+DELIMITER $$
+CREATE OR REPLACE PROCEDURE SELECT_VERIFICATION_BY_USERNAME(
+    USERNAME VARCHAR(15)
+)
+BEGIN
+    SELECT u.username    AS '작성자',
+           p.plan_detail AS '계획',
+           v.image_url   AS '인증 사진'
+    FROM STUDY_ROOM_MEMBER_WEEKLY_PLAN_VERIFICATION v
+             INNER JOIN STUDY_ROOM_MEMBER_WEEKLY_PLAN p
+                        ON v.study_room_member_weekly_plan_id = p.study_room_member_weekly_plan_id
+             INNER JOIN STUDY_ROOM_MEMBER m ON p.study_room_member_id = m.study_room_member_id
+             INNER JOIN USER u ON m.user_id = u.user_id
+    WHERE u.username = USERNAME;
+END $$
+DELIMITER ;
+
+DELIMITER $$
+CREATE OR REPLACE PROCEDURE SELECT_VERIFICATION_EXIST_BY_ROOM_NAME_AND_USERNAME_AND_DURATION(
+    STUDY_ROOM_NAME VARCHAR(30),
+    USERNAME VARCHAR(15),
+    STUDY_ROOM_DURATION INT
+)
+BEGIN
+    SELECT r.name                             AS '스터디룸',
+           u.username                         AS '작성자',
+           p.plan_detail                      AS '계획',
+           p.weekly_plan_round_number         AS '주차',
+           NVL2(p.plan_duration, '인증', '미인증') AS '시간_인증_여부',
+           NVL2(v.image_url, '인증', '미인증')     AS '사진_인증_여부'
+    FROM STUDY_ROOM_MEMBER_WEEKLY_PLAN_VERIFICATION v
+             RIGHT JOIN STUDY_ROOM_MEMBER_WEEKLY_PLAN p
+                        ON v.study_room_member_weekly_plan_id = p.study_room_member_weekly_plan_id
+             INNER JOIN STUDY_ROOM r ON p.study_room_id = r.study_room_id
+             INNER JOIN STUDY_ROOM_MEMBER m ON p.study_room_member_id = m.study_room_member_id
+             INNER JOIN USER u ON u.user_id = m.user_id
+    WHERE r.name = STUDY_ROOM_NAME
+      AND p.weekly_plan_round_number = STUDY_ROOM_DURATION
+      AND u.username = USERNAME;
+END $$
+DELIMITER ;
+
+```
+
+</div>
+</details>
+
+<details>
+<summary>인증</summary>
+<div markdown="1">
+
+```sql
+
+# [5.1.1] [타이머 인증]
+-- Study Room 1번에 참가한 'Giselbert' 유저 계획 시간 업데이트
+UPDATE STUDY_ROOM_MEMBER_WEEKLY_PLAN
+SET plan_duration = (plan_duration + 10000)
+WHERE study_room_member_weekly_plan_id = 2;
+
+SELECT *
+FROM STUDY_ROOM_MEMBER_WEEKLY_PLAN p
+         INNER JOIN STUDY_ROOM r ON p.study_room_id = r.study_room_id
+         INNER JOIN STUDY_ROOM_MEMBER m ON p.study_room_member_id = m.study_room_member_id
+         INNER JOIN USER u On m.user_id = u.user_id
+WHERE username = 'Giselbert';
+
+# [5.1.2] [사진 인증]
+UPDATE STUDY_ROOM_MEMBER_WEEKLY_PLAN_VERIFICATION
+SET image_url = '사진 인증 테스트'
+WHERE study_room_member_weekly_plan_id = 2;
+
+```
+
+</div>
+</details>
+
+<details>
+<summary>스터디원 인증 여부 조회</summary>
+<div markdown="1">
+
+```sql
+
+# [5.2.1] [스터디원 인증 여부 조회]
+# Study Room 1번 2주차 인증여부 조회
+CALL SELECT_VERIFICATION_EXIST_BY_ROOM_NAME_AND_USERNAME_AND_DURATION('자바로 알고리즘 공부하기', 'Giselbert', 2);
+
+```
+
+</div>
+</details>
+
+<details>
+<summary>인증 수정</summary>
+<div markdown="1">
+
+```sql
+
+# [5.3.1] [인증 수정]
+# 인증 사진 수정
+UPDATE STUDY_ROOM_MEMBER_WEEKLY_PLAN_VERIFICATION
+SET image_url = '사진 인증 수정 테스트'
+WHERE study_room_member_weekly_plan_id = 2;
+
+CALL SELECT_VERIFICATION_BY_USERNAME('Giselbert');
+
+```
+
+</div>
+</details>
+
+<details>
+<summary>인증 삭제</summary>
+<div markdown="1">
+
+```sql
+
+# [5.4.1] [인증 삭제]
+-- DELETE PLAN_VERIFICATION_BY_USERNAME_AND_PLAN_DETAIL
+DELETE
+FROM STUDY_ROOM_MEMBER_WEEKLY_PLAN_VERIFICATION
+WHERE study_room_member_weekly_plan_verification_id = (SELECT v.study_room_member_weekly_plan_verification_id
+                                                       FROM STUDY_ROOM_MEMBER_WEEKLY_PLAN_VERIFICATION v
+                                                                INNER JOIN STUDY_ROOM_MEMBER_WEEKLY_PLAN p
+                                                                           ON v.study_room_member_weekly_plan_id = p.study_room_member_weekly_plan_id
+                                                                INNER JOIN STUDY_ROOM_MEMBER m ON p.study_room_member_id = m.study_room_member_id
+                                                                INNER JOIN USER u ON m.user_id = u.user_id
+                                                       WHERE u.username = 'Giselbert'
+                                                         AND p.plan_detail = '토익 단어 500개 외우기');
+
+CALL SELECT_VERIFICATION_BY_USERNAME('Giselbert');
+
+```
+
+</div>
+</details>
+
+> ## **게시판**
+<details>
+<summary>게시글 작성</summary>
+<div markdown="1">
+
+```sql
+
+# [6.1.1] [게시글 제목 작성] T
+# [6.1.2] [게시글 내용 작성] T
+-- 3번 참가자가 1번 스터디룸에 게시글 작성: (제목)테스트 게시글 작성해요 (내용)근데 이거 꼭 작성해야 하나요???
+
+INSERT INTO study_room_board (study_room_id, study_room_member_id, title, content, created_date_time)
+VALUES (1, 3, '테스트 게시글 작성해요', '근데 이거 꼭 작성해야 하나요???', '2024-06-09 13:00:12');
+
+
+```
+
+</div>
+</details>
+
+<details>
+<summary>게시글 리스트 조회</summary>
+<div markdown="1">
+
+```sql
+
+# [6.2.1] [게시글 리스트 조회] T
+-- view) 1번 스터디룸 게시글 리스트 전체 조회: 제목, 작성자, 작성일 -> 최신순 정렬
+-- * 입력받은 스터디룸 번호의 게시글 리스트 뷰를 select해서 반환하는 프로시저 생성
+DELIMITER $$
+CREATE OR REPLACE PROCEDURE board_list (
+    IN id INT
+)
+BEGIN
+	DECLARE v_sql_statement VARCHAR(500);
+	SET v_sql_statement = CONCAT(
+        'CREATE OR REPLACE VIEW v_study_room_board AS ',
+        'SELECT title, content, b.username, created_date_time ',
+        'FROM STUDY_ROOM_BOARD a ',
+        'INNER JOIN (SELECT study_room_member_id, b.username ',
+        '           FROM STUDY_ROOM_MEMBER a ',
+        '           INNER JOIN USER b ON a.user_id = b.user_id) b ',
+        'ON a.study_room_member_id = b.study_room_member_id ',
+        'WHERE study_room_id = ', id,
+        ' ORDER BY created_date_time DESC'
+    );
+	PREPARE stmt FROM v_sql_statement;
+    EXECUTE stmt;
+    DEALLOCATE PREPARE stmt;
+END $$
+DELIMITER ;
+
+CALL board_list(1);
+
+```
+
+</div>
+</details>
+
+<details>
+<summary>상세 게시글 조회</summary>
+<div markdown="1">
+
+```sql
+
+# [6.2.2] [게시글 상세 조회] T
+-- 9번 게시글(1번 스터디룸의 6번째)을 조회: 제목, 내용, 작성자, 작성일
+SELECT title, content, b.username, created_date_time
+FROM STUDY_ROOM_BOARD a LEFT JOIN (SELECT study_room_member_id, b.username 
+	FROM STUDY_ROOM_MEMBER a LEFT JOIN USER b ON a.user_id = b.user_id) b
+ON a.study_room_member_id = b.study_room_member_id
+WHERE title = '한화 코테 준비';
+
+-- 삭제된 회원의 게시글을 조회: 제목, 내용, 작성자, 작성일 -> 작성자: 탈퇴회원_nn
+SELECT title, content, b.username, created_date_time
+FROM STUDY_ROOM_BOARD a LEFT JOIN (SELECT study_room_member_id, b.username 
+	FROM STUDY_ROOM_MEMBER a LEFT JOIN USER b ON a.user_id = b.user_id) b
+ON a.study_room_member_id = b.study_room_member_id
+WHERE b.username LIKE '탈퇴*';
+
+```
+
+</div>
+</details>
+
+<details>
+<summary>게시글 수정 및 삭제</summary>
+<div markdown="1">
+
+```sql
+
+# [6.3] [게시판 수정]
+# [6.3.1] [게시글 수정] T
+-- 9번 게시글(1번 스터디룸의 6번째)의 내용 수정
+UPDATE STUDY_ROOM_BOARD
+SET title = '게시글 수정 테스트합니다',
+	content = '내용도 수정한거 아세요? 날짜도 변경됩니다.',
+	created_date_time = NOW()
+WHERE study_room_board_id = 9;
+
+-- 게시글 수정된 내용 조회(이전 게시글 제목으로는 조회 안됨, 게시글 식별자로 수정 내용 확인)
+SELECT title, content, b.username, created_date_time
+FROM STUDY_ROOM_BOARD a LEFT JOIN (SELECT study_room_member_id, b.username 
+	FROM STUDY_ROOM_MEMBER a LEFT JOIN USER b ON a.user_id = b.user_id) b
+ON a.study_room_member_id = b.study_room_member_id
+WHERE title = '한화 코테 준비';
+
+SELECT title, content, b.username, created_date_time
+FROM STUDY_ROOM_BOARD a LEFT JOIN (SELECT study_room_member_id, b.username 
+	FROM STUDY_ROOM_MEMBER a LEFT JOIN USER b ON a.user_id = b.user_id) b
+ON a.study_room_member_id = b.study_room_member_id
+WHERE study_room_board_id = 9;
+
+# [6.4] [게시판 삭제]
+# [6.4.1] [게시글 삭제하기] T
+-- 4번 게시글(1번 스터디룸의 3번째) delete 후 view 조회하여 삭제 확인: 6.3.1 테스트 수정 내용도 같이 대략적 확인
+-- * 게시글을 삭제하려면 외래키 제약에 의해 해당 댓글을 먼저 전부 삭제하고, 게시글을 삭제하는 작업을 거쳐야 함
+-- * 두 작업을 한 번에 처리하기 위해, 프로시저 사용
+
+DELIMITER $$
+CREATE PROCEDURE delete_board (
+	IN board_id INT
+)
+BEGIN
+	DELETE FROM STUDY_ROOM_BOARD_COMMENT
+	WHERE study_room_board_id = board_id;
+
+	DELETE FROM STUDY_ROOM_BOARD
+	WHERE study_room_board_id = board_id;
+END $$
+DELIMITER;
+
+CALL delete_board(4)
+CALL board_list(1)
+
+```
+
+</div>
+</details>
+
+<details>
+<summary>댓글 작성 및 조회</summary>
+<div markdown="1">
+
+```sql
+
+# [6.5.1] [댓글 작성하기] T
+-- 28번 게시글(2번 스터디룸의 14번째)에 7번 참가자가 댓글 작성
+INSERT INTO study_room_board_comment (study_room_board_id, study_room_member_id, content, created_date_time)
+VALUES (28, 7, '테스트 댓글을 작성할거에요.', NOW());
+
+# [6.5.2] [댓글 조회하기] T
+-- 28번 게시글(2번 스터디룸의 14번째)의 '제목'으로 댓글 조회
+-- 게시글 제목으로 댓글을 조회하는 프로시저 생성, 조회 조건: (게시글)제목, 내용, 작성자, 작성일 (댓글)작성자, 내용, 작성일
+DELIMITER $$
+CREATE OR REPLACE PROCEDURE board_comment (
+    IN board_title VARCHAR(100)
+)
+BEGIN
+	SELECT c.username, a.content, a.created_date_time
+    FROM STUDY_ROOM_BOARD_COMMENT a
+    LEFT JOIN STUDY_ROOM_BOARD b ON a.study_room_board_id = b.study_room_board_id
+    LEFT JOIN (SELECT study_room_member_id, b.username 
+	    FROM STUDY_ROOM_MEMBER a LEFT JOIN USER b ON a.user_id = b.user_id) c ON a.study_room_member_id = c.study_room_member_id
+    WHERE b.title = board_title;
+END $$
+DELIMITER ;
+
+CALL board_comment('고등학교 수학 완전정복');
+
+```
+
+</div>
+</details>
+
+<details>
+<summary>댓글 수정 및 삭제</summary>
+<div markdown="1">
+
+```sql
+
+# [6.5.3] [댓글 삭제하기] T
+-- 'Ellary'유저(10번 참가자)가 자신의 댓글을 모두 삭제
+-- 전체 댓글 중 'Ellary'가 작성한 댓글 조회해서 확인
+DELETE FROM STUDY_ROOM_BOARD_COMMENT
+WHERE study_room_member_id = 10;
+
+SELECT c.username, a.content, a.created_date_time
+FROM STUDY_ROOM_BOARD_COMMENT a
+LEFT JOIN STUDY_ROOM_BOARD b ON a.study_room_board_id = b.study_room_board_id
+LEFT JOIN (SELECT study_room_member_id, b.username 
+	FROM STUDY_ROOM_MEMBER a LEFT JOIN USER b ON a.user_id = b.user_id) c ON a.study_room_member_id = c.study_room_member_id
+WHERE c.username = 'Ellary';
+
+# [6.5.4] [댓글 수정하기] T
+-- 28번 게시글(2번 스터디룸의 14번째)에서 'Betti'유저(6번 참가자)가 댓글 수정
+-- 28번 게시글 조회해서 수정된 댓글 확인('Ellary'의 삭제된 댓글도 같이 확인)
+UPDATE STUDY_ROOM_BOARD_COMMENT
+SET content = '조금씩 아니고 대폭 나아지고 있어요.',
+	create_date_time = NOW()
+WHERE study_room_board_id = 28 AND study_room_member_id = 6;
+
+CALL board_comment('고등학교 수학 완전정복');
+
+```
+
+</div>
+</details>
+
+
+> ## **벌금**
+<details>
+<summary>벌금 액수 집계</summary>
+<div markdown="1">
+
+```sql
+
+-- 스터디룸 생성 시 입력되었던 인증 주기(1주 기준), 인증 방법, 벌금 정보를 바탕으로 액수가 집계된다.
+SELECT 
+    sr.study_room_id,
+    sr.authentication_method,
+    sr.fine,
+    COUNT(DISTINCT srm.study_room_member_id) AS total_members,
+    SUM(CASE WHEN ss.attendance = 'PRESENT' THEN 1 ELSE 0 END) AS total_attended_rounds,
+    SUM(CASE WHEN ss.todo_achievement = 'ACHIEVED' THEN 1 ELSE 0 END) AS total_achieved_todos,
+    SUM(CASE WHEN ss.pay_fine = '12000' THEN 1 ELSE 0 END) AS total_fined_rounds,
+    SUM(CASE WHEN ss.pay_fine = '12000' THEN srmf.fine_amount ELSE 0 END) AS total_fine_amount
+FROM 
+    STUDY_ROOM sr
+LEFT JOIN 
+    STUDY_ROOM_MEMBER srm ON sr.study_room_id = srm.study_room_id
+LEFT JOIN 
+    STATISTICS ss ON sr.study_room_id = ss.study_room_id
+LEFT JOIN 
+    STUDY_ROOM_MEMBER_FINE srmf ON srm.study_room_member_id = srmf.study_room_member_id
+GROUP BY 
+    sr.study_room_id, sr.authentication_method, sr.fine;
+    
+
+SELECT * FROM statistics;
+
+```
+
+</div>
+</details>
+
+<details>
+<summary>성취도와 회차에 따른 벌금 액수 집계</summary>
+<div markdown="1">
+
+```sql
+
+-- 벌금은 기간 단위 내 스터디원 성취 여부를 기준으로 70% 이하 성취 시 집계되어야 한다.
+SELECT 
+    sr.study_room_id,
+    sr.authentication_method,
+    sr.fine,
+    COUNT(DISTINCT srm.study_room_member_id) AS total_members,
+    SUM(CASE WHEN ss.attendance = 'PRESENT' THEN 1 ELSE 0 END) AS total_attended_rounds,
+    SUM(CASE WHEN ss.todo_achievement = 'ACHIEVED' THEN 1 ELSE 0 END) AS total_achieved_todos,
+    SUM(CASE WHEN ss.pay_fine = '12000' THEN 1 ELSE 0 END) AS total_fined_rounds,
+    SUM(CASE WHEN ss.pay_fine = '12000' AND 
+        (SELECT 
+            COUNT(*) 
+        FROM 
+            STATISTICS 
+        WHERE 
+            study_room_id = sr.study_room_id 
+            AND todo_achievement = 'ACHIEVED'
+            AND pay_fine = '12000'
+        ) / NULLIF(
+            (SELECT 
+                COUNT(*) 
+            FROM 
+                STATISTICS 
+            WHERE 
+                study_room_id = sr.study_room_id 
+                AND pay_fine = 'YES'
+            ), 0) <= 0.7 THEN 1 ELSE 0 END) AS total_fined_due_to_achievement_rate,
+    SUM(CASE WHEN ss.pay_fine = 'YES' THEN srmf.fine_amount ELSE 0 END) AS total_fine_amount
+FROM 
+    STUDY_ROOM sr
+LEFT JOIN 
+    STUDY_ROOM_MEMBER srm ON sr.study_room_id = srm.study_room_id
+LEFT JOIN 
+    STATISTICS ss ON sr.study_room_id = ss.study_room_id
+LEFT JOIN 
+    STUDY_ROOM_MEMBER_FINE srmf ON srm.study_room_member_id = srmf.study_room_member_id
+GROUP BY 
+    sr.study_room_id, sr.authentication_method, sr.fine;
+
+
+-- 집계된 벌금 액수는 주간 단위 다음날 05:00 기준으로 계산되어야 한다.
+ SELECT *
+FROM STUDY_ROOM_MEMBER_FINE
+WHERE DATE_ADD(NOW(), INTERVAL 1 WEEK) >= DATE_FORMAT(NOW(), '%Y-%m-%d 05:00:00');
+
+
+
+-- 집계된 벌금 액수는 주간 단위 기준으로 초기화되어야 한다.
+UPDATE STUDY_ROOM_MEMBER_FINE
+SET fine_amount = 0
+WHERE DAYOFWEEK(NOW()) = 2 AND HOUR(NOW()) = 5; -- 월요일 오전 5시
+
+
+-- STUDY_ROOM_MEMBER_FINE 테이블에 더미 데이터 삽입
+INSERT INTO STUDY_ROOM_MEMBER_FINE (study_room_member_id, get_fine_round, fine_amount)
+VALUES 
+    (1, 1, 100),
+    (2, 1, 200),
+    (3, 1, 0),
+    (4, 1, 300);
+
+-- 주간 벌금 초기화 쿼리를 실행하기 전에 현재 STUDY_ROOM_MEMBER_FINE 테이블의 데이터 출력
+SELECT * FROM STUDY_ROOM_MEMBER_FINE;
+
+-- 주간 벌금 초기화 쿼리 실행
+UPDATE STUDY_ROOM_MEMBER_FINE
+SET fine_amount = 0
+WHERE DAYOFWEEK(NOW()) = 2 AND HOUR(NOW()) = 5; -- 월요일 오전 5시
+
+-- 주간 벌금 초기화 후 STUDY_ROOM_MEMBER_FINE 테이블의 데이터 출력
+SELECT * FROM STUDY_ROOM_MEMBER_FINE;
+
+-- 주간 벌금 액수가 주간 단위 다음날 05:00 기준으로 계산되는지 확인하는 쿼리
+SELECT *
+FROM STUDY_ROOM_MEMBER_FINE
+WHERE DATE_ADD(NOW(), INTERVAL 1 WEEK) >= DATE_FORMAT(NOW(), '%Y-%m-%d 05:00:00');
+
+```
+
+</div>
+</details>
+
+<details>
+<summary>벌금 대상 집계</summary>
+<div markdown="1">
+
+```sql
+
+-- 스터디룸 생성 시 입력되었던 인증 주기, 인증 방법 정보를 바탕으로 대상을 집계한다.
+SELECT 
+    sr.study_room_id,
+    sr.authentication_method,
+    COUNT(DISTINCT srm.study_room_member_id) AS total_members
+FROM 
+    STUDY_ROOM sr
+LEFT JOIN 
+    STUDY_ROOM_MEMBER srm ON sr.study_room_id = srm.study_room_id
+GROUP BY 
+    sr.study_room_id, sr.authentication_method;
+
+```
+
+</div>
+</details>
+
+<details>
+<summary>성취도와 회차에 따른 벌금 대상 집계</summary>
+<div markdown="1">
+
+```sql
+
+-- 벌금 대상은 기간 단위 내 스터디원 성취 여부를 기준으로 70% 이하 성취 시 집계되어야 한다.
+SELECT 
+    sr.study_room_id,
+    COUNT(DISTINCT srm.study_room_member_id) AS total_members,
+    SUM(CASE WHEN ss.todo_achievement = 'ACHIEVED' THEN 1 ELSE 0 END) AS total_achieved_todos,
+    SUM(CASE WHEN ss.todo_achievement = 'ACHIEVED' THEN 1 ELSE 0 END) / NULLIF(COUNT(DISTINCT srm.study_room_member_id), 0) AS achievement_rate
+FROM 
+    STUDY_ROOM sr
+LEFT JOIN 
+    STUDY_ROOM_MEMBER srm ON sr.study_room_id = srm.study_room_id
+LEFT JOIN 
+    STATISTICS ss ON sr.study_room_id = ss.study_room_id
+GROUP BY 
+    sr.study_room_id
+HAVING 
+    achievement_rate <= 0.7;
+
+-- 벌금 대상은 기간 단위 다음날 05:00시 기준으로 집계되어야 한다.
+SELECT 
+    sr.study_room_id,
+    COUNT(DISTINCT srm.study_room_member_id) AS total_members
+FROM 
+    STUDY_ROOM sr
+LEFT JOIN 
+    STUDY_ROOM_MEMBER srm ON sr.study_room_id = srm.study_room_id
+LEFT JOIN 
+    STATISTICS ss ON sr.study_room_id = ss.study_room_id
+WHERE 
+    DATE_ADD(DATE_FORMAT(NOW(), '%Y-%m-%d 05:00:00'), INTERVAL 1 DAY) <= NOW()
+GROUP BY 
+    sr.study_room_id;
+
+
+
+-- 벌금 대상은 기간 단위 기준으로 초기화되어야 한다.
+
+-- 기간 단위로 초기화하는 쿼리 (예를 들어, 매주 월요일 오전 5시에 실행)
+UPDATE 
+    STUDY_ROOM_MEMBER_FINE
+SET 
+    fine_amount = 0
+WHERE 
+    DAYOFWEEK(NOW()) = 2 AND HOUR(NOW()) = 5; -- 월요일 오전 5시
+   
+-- 스터디룸 생성 시 입력되었던 인증 주기, 인증 방법 정보를 바탕으로 대상을 집계하는 테스트 케이스
+SELECT 
+    sr.study_room_id,
+    sr.authentication_method,
+    COUNT(DISTINCT srm.study_room_member_id) AS total_members
+FROM 
+    STUDY_ROOM sr
+LEFT JOIN 
+    STUDY_ROOM_MEMBER srm ON sr.study_room_id = srm.study_room_id
+GROUP BY 
+    sr.study_room_id, sr.authentication_method;
+
+-- 벌금 대상은 기간 단위 내 스터디원 성취 여부를 기준으로 70% 이하 성취 시 집계되어야 한다.
+SELECT 
+    sr.study_room_id,
+    COUNT(DISTINCT srm.study_room_member_id) AS total_members,
+    SUM(CASE WHEN ss.todo_achievement = 'ACHIEVED' THEN 1 ELSE 0 END) AS total_achieved_todos,
+    SUM(CASE WHEN ss.todo_achievement = 'ACHIEVED' THEN 1 ELSE 0 END) / NULLIF(COUNT(DISTINCT srm.study_room_member_id), 0) AS achievement_rate
+FROM 
+    STUDY_ROOM sr
+LEFT JOIN 
+    STUDY_ROOM_MEMBER srm ON sr.study_room_id = srm.study_room_id
+LEFT JOIN 
+    STATISTICS ss ON sr.study_room_id = ss.study_room_id
+GROUP BY 
+    sr.study_room_id
+HAVING 
+    achievement_rate <= 0.7;
+
+-- 벌금 대상은 기간 단위 다음날 05:00시 기준으로 집계되어야 한다.
+SELECT 
+    sr.study_room_id,
+    COUNT(DISTINCT srm.study_room_member_id) AS total_members
+FROM 
+    STUDY_ROOM sr
+LEFT JOIN 
+    STUDY_ROOM_MEMBER srm ON sr.study_room_id = srm.study_room_id
+LEFT JOIN 
+    STATISTICS ss ON sr.study_room_id = ss.study_room_id
+WHERE 
+    DATE_ADD(DATE_FORMAT(NOW(), '%Y-%m-%d 05:00:00'), INTERVAL 1 DAY) <= NOW()
+GROUP BY 
+    sr.study_room_id;
+
+-- 벌금 대상은 기간 단위 기준으로 초기화되어야 한다.
+-- 초기화 전
+SELECT * FROM STUDY_ROOM_MEMBER_FINE;
+
+-- 벌금 대상을 기간 단위로 초기화
+UPDATE 
+    STUDY_ROOM_MEMBER_FINE
+SET 
+    fine_amount = 0
+WHERE 
+    DAYOFWEEK(NOW()) = 2 AND HOUR(NOW()) = 5; -- 월요일 오전 5시
+
+-- 초기화 후
+SELECT * FROM STUDY_ROOM_MEMBER_FINE;
+
+```
+
+</div>
+</details>
+
+> ## **통계**
+<details>
+<summary>주간 계획 관련 통계</summary>
+<div markdown="1">
+
+```sql
+
+-- 9.1.1 주간계획 총 개수 집계
+-- ex : 자바로 알고리즘 공부하기 그룹 유저들의 1회차 주간계획 개수 출력
+SELECT sr.name AS 'group name',
+       u.username,
+       COUNT(*) AS 'num of plan'
+FROM study_room_member srm
+INNER JOIN user u ON u.user_id = srm.user_id
+INNER JOIN study_room_member_weekly_plan wp ON wp.study_room_member_id = srm.study_room_member_id
+INNER JOIN study_room sr ON sr.study_room_id = srm.study_room_id
+WHERE sr.name = '자바로 알고리즘 공부하기'
+AND wp.weekly_plan_round_number = 1
+AND srm.is_join_accepted = 1
+GROUP BY sr.name, u.username
+ORDER BY COUNT(*) DESC
+;
+
+-- 9.1.2 주간계획 총 소요시간 집계
+-- sec_to_time 메소드 이용
+SELECT sr.name AS 'group name',
+       u.username,
+       SEC_TO_TIME(SUM(wp.plan_duration)) AS 'total time'
+FROM study_room_member srm
+INNER JOIN user u ON u.user_id = srm.user_id
+INNER JOIN study_room_member_weekly_plan wp ON wp.study_room_member_id = srm.study_room_member_id
+INNER JOIN study_room sr ON sr.study_room_id = srm.study_room_id
+WHERE sr.name = '자바로 알고리즘 공부하기'
+AND wp.weekly_plan_round_number = 1
+AND srm.is_join_accepted = 1
+GROUP BY sr.name, u.username
+ORDER BY COUNT(*) DESC
+;
+
+```
+
+</div>
+</details>
+
+<details>
+<summary>주간 계획 평가 관련 통계</summary>
+<div markdown="1">
+
+```sql
+
+-- 9.2 주간 계획 평가 집계
+-- 자바로~ 그룹의 1회차 주간 계획 평가개수
+SELECT sr.name AS 'group name',
+       u.username,
+       COUNT(ev.study_room_member_weekly_plan_evaluation_id) AS 'num of evaluation'
+FROM study_room_member srm
+INNER JOIN user u ON u.user_id = srm.user_id
+INNER JOIN study_room_member_weekly_plan wp ON wp.study_room_member_id = srm.study_room_member_id
+INNER JOIN study_room sr ON sr.study_room_id = srm.study_room_id
+INNER JOIN study_room_member_weekly_plan_evaluation ev ON ev.study_room_member_weekly_plan_id = wp.study_room_member_weekly_plan_id
+WHERE sr.name = '자바로 알고리즘 공부하기'
+AND wp.weekly_plan_round_number = 1
+AND srm.is_join_accepted = 1
+GROUP BY sr.name, u.username
+ORDER BY 3 DESC;
+
+```
+
+</div>
+</details>
+
+<details>
+<summary>벌금 관련 통계</summary>
+<div markdown="1">
+
+```sql
+
+# 벌금 액수 집계 통계 쿼리(탈퇴 회원 제외, 동순위 rank)
+
+use study_hour;
+
+DELIMITER $$
+CREATE OR REPLACE PROCEDURE SELECT_FINE_COUNT_RANK_BY_ROOM_ID (
+    room_id INT
+)
+BEGIN
+    SELECT c.username, get_fine_round, sum(fine_amount) as total_fine_amount, RANK() OVER (PARTITION BY get_fine_round ORDER BY sum(fine_amount) DESC) AS rank
+    FROM STUDY_ROOM_MEMBER_FINE a
+             INNER JOIN STUDY_ROOM_MEMBER b ON a.study_room_member_id = b.study_room_member_id
+             INNER JOIN USER c ON b.user_id = c.user_id
+    WHERE b.study_room_id = room_id AND c.username NOT LIKE '탈퇴*'
+    GROUP BY c.username
+    ORDER BY total_fine_amount DESC;
+end $$
+DELIMITER ;
+
+CALL SELECT_FINE_COUNT_RANK_BY_ROOM_ID(1);
+
+```
+
+</div>
+</details>
+
+<details>
+<summary>게시글 관련 통계</summary>
+<div markdown="1">
+
+```sql
+
+use study_hour;
+
+# 스터디룸 내 게시글 작성 개수 순위
+DELIMITER $$
+CREATE OR REPLACE PROCEDURE SELECT_BOARD_COUNT_RANK_BY_ROOM_ID(
+    ROOM_ID int
+)
+BEGIN
+    SELECT u.username                           AS '작성자',
+           COUNT(*)                             AS '작성_개수',
+           RANK() over (ORDER BY COUNT(*) DESC) AS '게시글_작성_개수_순위'
+    FROM STUDY_ROOM_BOARD b
+             INNER JOIN STUDY_ROOM_MEMBER m ON b.study_room_member_id = m.study_room_member_id
+             INNER JOIN USER u ON m.user_id = u.user_id
+    WHERE m.study_room_id = ROOM_ID
+      AND u.username NOT LIKE '탈퇴%'
+      AND u.nickname NOT LIKE '탈퇴%'
+    GROUP BY u.username
+    ORDER BY '게시글_작성_개수_순위';
+end $$
+DELIMITER ;
+
+CALL SELECT_BOARD_COUNT_RANK_BY_ROOM_ID(1);
+
+```
+
+</div>
+</details>
+
+<details>
+<summary>댓글 관련 통계</summary>
+<div markdown="1">
+
+```sql
+
+USE study_hour;
+
+# 스터디룸에서 댓글을 단 사람 순위
+DELIMITER $$
+CREATE OR REPLACE PROCEDURE SELECT_COMMENT_COUNT_RANK_BY_ROOM_ID(
+    ROOM_ID INT
+)
+BEGIN
+    SELECT u.username                           AS '유저_아이디',
+           RANK() over (ORDER BY COUNT(*) DESC) AS '댓글_작성_개수_순위'
+    FROM STUDY_ROOM_BOARD_COMMENT c
+             INNER JOIN STUDY_ROOM_BOARD b ON c.study_room_board_id = b.study_room_board_id
+             INNER JOIN STUDY_ROOM_MEMBER m ON c.study_room_member_id = m.study_room_member_id
+             INNER JOIN USER u ON m.user_id = u.user_id
+    WHERE m.study_room_id = ROOM_ID
+      AND u.username NOT LIKE '탈퇴%'
+      AND u.nickname NOT LIKE '탈퇴%'
+    GROUP BY u.username;
+end $$
+DELIMITER ;
+
+CALL SELECT_COMMENT_COUNT_RANK_BY_ROOM_ID(1);
+
+CALL SELECT_COMMENT_COUNT_RANK_BY_ROOM_ID(2);
+
+```
+
+</div>
+</details>
