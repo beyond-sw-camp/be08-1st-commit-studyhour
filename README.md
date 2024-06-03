@@ -1684,7 +1684,6 @@ ORDER BY COUNT(*) DESC
 ;
 
 ```
-
 </div>
 </details>
 
@@ -1817,6 +1816,3 @@ CALL SELECT_COMMENT_COUNT_RANK_BY_ROOM_ID(2);
 
 </div>
 </details>
-
-
-hello
