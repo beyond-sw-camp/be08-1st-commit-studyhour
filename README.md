@@ -127,7 +127,7 @@ StudyHour, 당신의 학습을 혁신하다.
 > https://www.erdcloud.com/d/Pa9iZmgyjL6FFvJaT
 
 > ## ** 테이블 명세서 **
-> https://docs.google.com/spreadsheets/d/1G1UDF3zMqdjeQdWAOBGzSWtaD-pu4Jln05nPjunVHCQ/edit#gid=2107785064
+> [https://docs.google.com/spreadsheets/d/1G1UDF3zMqdjeQdWAOBGzSWtaD-pu4Jln05nPjunVHCQ/edit#gid=2107785064](https://docs.google.com/spreadsheets/d/1G1UDF3zMqdjeQdWAOBGzSWtaD-pu4Jln05nPjunVHCQ/edit?usp=sharing)
 
 > ## **📖DDL**
 > #### 컬럼명 컨벤션
